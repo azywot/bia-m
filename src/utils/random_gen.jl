@@ -22,7 +22,7 @@ end
 
 
 """
-## Generating pairs of random but unique numbers 0..n–1 (for RW and SA).
+## Generating pairs of random but unique numbers 0..n-1 (for RW and SA).
 
 - `n::Int`: number of items
 
@@ -38,4 +38,32 @@ function generate_random_pairs(n)
     pairs = [(permutation[i], permutation[i+1]) for i in 1:2:length(permutation)]
     return pairs
 
+end
+
+
+"""
+## Generate a random unique pair from given range.
+
+- `n::Int`: number of items
+
+returns: a generated pair
+"""
+function generate_random_pair(n)
+    x1 = rand(1:n)
+    x2 = (rand(1:n-1) + x1 + 1) % (n + 1)
+    return x1, x2
+end
+
+
+"""
+## Assess permutation randomness
+?uniform histogram of numbers on positions, uniqness of permutations?
+
+- `n::Int`: number of items
+
+returns: some measure of assessment
+"""
+function assess_perm_randomness(n)
+    # TODO
+    return 0
 end

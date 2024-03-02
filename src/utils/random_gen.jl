@@ -1,3 +1,6 @@
+using Plots
+
+
 """
 ## Generate a random permutation of items 1..n.
 
@@ -5,7 +8,7 @@
 
 returns: a permutation as a list
 """
-function generate_random_permutation(n)
+function generate_random_permutation(n::Int)
 
     elements = collect(1:n)
     permutation = []
@@ -28,7 +31,7 @@ end
 
 returns: a list of randomly generated pairs
 """
-function generate_random_pairs(n)
+function generate_random_pairs(n::Int)
 
     if n % 2 != 0
         error("Number of elements must be even.")
@@ -48,7 +51,7 @@ end
 
 returns: a generated pair
 """
-function generate_random_pair(n)
+function generate_random_pair(n::Int)
     x1 = rand(1:n)
     x2 = (rand(1:n-1) + x1 + 1) % (n + 1)
     return x1, x2
@@ -57,13 +60,24 @@ end
 
 """
 ## Assess permutation randomness
-?uniform histogram of numbers on positions, uniqness of permutations?
+Histogram of unique permutations
 
 - `n::Int`: number of items
+- `num_samples::Int`: number of permuations to generate
 
-returns: some measure of assessment
+returns: dictionary with permutations counts
 """
-function assess_perm_randomness(n)
-    # TODO
-    return 0
+function permutation_test(n::Int, num_samples::Int)
+    counts = Dict()
+    for _ in 1:num_samples
+        perm = generate_random_permutation(n)
+        perm_str = join(perm)
+        counts[perm_str] = get(counts, perm_str, 0) + 1
+    end
+    return counts
 end
+
+
+n = 5
+d = permutation_test(n, factorial(n)*1000)
+bar(collect(keys(d)), collect(values(d)), orientation=:vertical)

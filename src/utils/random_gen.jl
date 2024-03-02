@@ -12,14 +12,14 @@ function generate_random_permutation(n::Int)
 
     elements = collect(1:n)
     permutation = []
-    
+
     while !isempty(elements)
         selected_idx = rand(1:length(elements))
         selected_element = elements[selected_idx]
         deleteat!(elements, selected_idx)
         push!(permutation, selected_element)
     end
-    
+
     return permutation
 end
 
@@ -36,7 +36,7 @@ function generate_random_pairs(n::Int)
     if n % 2 != 0
         error("Number of elements must be even.")
     end
-    
+
     permutation = generate_random_permutation(n)
     pairs = [(permutation[i], permutation[i+1]) for i in 1:2:length(permutation)]
     return pairs
@@ -65,7 +65,7 @@ Histogram of unique permutations
 - `n::Int`: number of items
 - `num_samples::Int`: number of permuations to generate
 
-returns: dictionary with permutations counts
+returns: dictionary with permutations counts and histogram
 """
 function permutation_test(n::Int, num_samples::Int)
     counts = Dict()
@@ -74,10 +74,11 @@ function permutation_test(n::Int, num_samples::Int)
         perm_str = join(perm)
         counts[perm_str] = get(counts, perm_str, 0) + 1
     end
-    return counts
+    histogram = bar(collect(keys(counts)), collect(values(counts)),
+        orientation=:vertical,
+        legend=false,
+        title="Histogram of unique permuations",
+        xlabel="Permutation",
+        ylabel="Occurences")
+    return counts, histogram
 end
-
-
-n = 5
-d = permutation_test(n, factorial(n)*1000)
-bar(collect(keys(d)), collect(values(d)), orientation=:vertical)

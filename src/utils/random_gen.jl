@@ -1,5 +1,5 @@
 using Plots
-
+using Statistics
 
 """
 ## Generate a random permutation of items 1..n.
@@ -60,12 +60,14 @@ end
 
 """
 ## Assess permutation randomness
-Histogram of unique permutations
+Histogram of unique permutations. TR function should generate each permutation with the same probability.
+Therefore, std of number of occurences of unique permutation is used as randomness measure
+1 - perfectly random, 0 - not random
 
 - `n::Int`: number of items
 - `num_samples::Int`: number of permuations to generate
 
-returns: dictionary with permutations counts and histogram
+returns: std of occurences, dictionary with permutations counts, histogram
 """
 function permutation_test(n::Int, num_samples::Int)
     counts = Dict()
@@ -74,11 +76,12 @@ function permutation_test(n::Int, num_samples::Int)
         perm_str = join(perm)
         counts[perm_str] = get(counts, perm_str, 0) + 1
     end
-    histogram = bar(collect(keys(counts)), collect(values(counts)),
+    vals = collect(values(counts))
+    histogram = bar(collect(keys(counts)), vals,
         orientation=:vertical,
         legend=false,
         title="Histogram of unique permuations",
         xlabel="Permutation",
         ylabel="Occurences")
-    return counts, histogram
+    return 1 - std(vals) / num_samples, counts, histogram
 end

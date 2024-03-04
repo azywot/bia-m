@@ -1,23 +1,22 @@
 include("utils/random_gen.jl")
 include("utils/read_data.jl")
 
-
 n = 5
 randomness_measure, counts, histogram = permutation_test(n, factorial(n) * 1000)
 randomness_measure
 histogram
 
-
+# TEST
 filename = "data/SEL_tsp/a280.tsp"
-tsp_dict = read_tsp_file(filename)
-println("TSP instance:\n", tsp_dict)
+test_tsp = read_tsp_file(filename)
+println(test_tsp)
 
-
+# READ SELECTED INSTANCES
 directory_path = "data/SEL_tsp"
-tsp_files = filter(file -> endswith(file, ".tsp"), readdir(directory_path))
+INSTANCES = ["berlin52", "ch150", "gil262", "pr76", "pr226", "pr439", "pr1002", "rat575", "tsp225", "u724"]
 
-for tsp in tsp_files
-    fielname = joinpath(directory_path, tsp)
-    tsp_dict = read_tsp_file(fielname)
-    print(tsp_dict["NAME"], tsp_dict["COMMENT"], "\n")
+for tsp in INSTANCES
+    fielname = joinpath(directory_path, tsp * ".tsp")
+    tsp = read_tsp_file(fielname)
+    println(tsp)
 end

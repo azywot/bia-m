@@ -77,23 +77,20 @@ end
 Generate an inter route solution.
 - `solution::Vector{Int}`: solution
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
-- `cost_vector::Vector{Int}`: vector of costs of node
 - `new_node::Int`: number of node to be inserted
 - `idx::Int`: index at which new node will be inserted
 
 returns: a local search solution and its delta
 """
-function generate_inter_route_move(solution, dm, cost_vector, new_node, idx)
+function generate_inter_route_move(solution, dm, new_node, idx)
     n = length(solution)
     sol = deepcopy(solution)
     old_node = solution[idx]
 
     plus =
-        cost_vector[new_node] +
         dm[sol[mod(idx - 2, n)+1], new_node] +
         dm[new_node, sol[mod(idx, n)+1]]
     minus =
-        cost_vector[old_node] +
         dm[sol[mod(idx - 2, n)+1], old_node] +
         dm[old_node, sol[mod(idx, n)+1]]
 
@@ -109,15 +106,13 @@ Generate a local search greedy solution given a starting solution and a mode.
 - `iterations::Int`: number of iterations
 - `solution::Vector{Int}`: initial solution
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
-- `cost_vector::Vector{Int}`: vector of costs of node
 - `mode::String`: mode of the local search, either "node" or "edge"
 
 returns: a local search solution
 """
-function local_greedy_search(solution, distance_matrix, cost_vector, mode = "edge")
+function local_greedy_search(solution, distance_matrix, mode = "edge")
     N, _ = size(distance_matrix)
     distance_matrix = deepcopy(distance_matrix)
-    cost_vector = deepcopy(cost_vector)
     best_solution = deepcopy(solution)
 
     node_pairs = collect(Combinatorics.combinations(1:length(solution), 2))
@@ -146,7 +141,6 @@ function local_greedy_search(solution, distance_matrix, cost_vector, mode = "edg
                 new_solution, delta = generate_inter_route_move(
                     best_solution,
                     distance_matrix,
-                    cost_vector,
                     candidate_node,
                     idx,
                 )
@@ -164,16 +158,14 @@ end
 Generate a local search steepest solution given a starting solution and a mode.
 - `solution::Vector{Int}`: initial solution
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
-- `cost_vector::Vector{Int}`: vector of costs of node
 - `mode::String`: mode of the local search, either "node" or "edge"
 
 returns: a local search solution
 """
-function local_steepest_search(solution, distance_matrix, cost_vector, mode = "edge")
+function local_steepest_search(solution, distance_matrix, mode = "edge")
 
     N, _ = size(distance_matrix)
     distance_matrix = deepcopy(distance_matrix)
-    cost_vector = deepcopy(cost_vector)
     best_solution = deepcopy(solution)
 
     node_pairs = collect(Combinatorics.combinations(1:length(solution), 2))
@@ -198,7 +190,6 @@ function local_steepest_search(solution, distance_matrix, cost_vector, mode = "e
             new_solution, delta = generate_inter_route_move(
                 best_solution,
                 distance_matrix,
-                cost_vector,
                 pair[1],
                 pair[2],
             )

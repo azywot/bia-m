@@ -6,7 +6,7 @@ struct TSPInstance
     comment::String
     type::String
     edge_weight_type::String
-    distance_matrix::Matrix{Float32}
+    distance_matrix::Matrix{Int}
 end
 
 
@@ -19,7 +19,7 @@ function show(io::IO, tsp::TSPInstance)
     println(io, "  Distance matrix: ", size(tsp.distance_matrix))
 end
 
-# TODO: verify the distances with the pdf, ensure the number of decimal places is ok (now it's not set)
+
 """
 ## Creates a distance matrix based on a list of nodes.
 
@@ -37,7 +37,7 @@ function create_distance_matrix(nodes)
         node1 = nodes[i]
         for j in i:N
             node2 = nodes[j]
-            distance = euclidean(node1[2], node2[2])
+            distance = round(euclidean(node1[2], node2[2]))
             dm[node1[1], node2[1]] = distance 
             dm[node2[1], node1[1]] = distance 
         end

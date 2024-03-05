@@ -1,3 +1,4 @@
+using Distances
 import Base.show
 
 struct TSPInstance
@@ -5,7 +6,7 @@ struct TSPInstance
     comment::String
     type::String
     edge_weight_type::String
-    nodes::Vector{Tuple{Int, Tuple{Float32, Float32}}}
+    distance_matrix::Matrix{Float32}
 end
 
 
@@ -15,7 +16,38 @@ function show(io::IO, tsp::TSPInstance)
     println(io, "  Comment: ", tsp.comment)
     println(io, "  Type: ", tsp.type)
     println(io, "  Edge Weight Type: ", tsp.edge_weight_type)
-    println(io, "  Nodes:", length(tsp.nodes))
+    println(io, "  Distance matrix: ", size(tsp.distance_matrix))
+end
+
+# TODO: verify the distances with the pdf, ensure the number of decimal places is ok (now it's not set)
+"""
+## Creates a distance matrix based on a list of nodes.
+
+- `nodes::Vector{Tuple{Int, Tuple{Float32, Float32}}}`: a list of nodes
+
+returns: A distance matrix of nodes. 
+"""
+function create_distance_matrix(nodes)
+
+    N = length(nodes)
+    inf = 1000000
+
+    dm = zeros(N, N)
+    for i in 1:N
+        node1 = nodes[i]
+        for j in i:N
+            node2 = nodes[j]
+            distance = euclidean(node1[2], node2[2])
+            dm[node1[1], node2[1]] = distance 
+            dm[node2[1], node1[1]] = distance 
+        end
+    end
+
+    for i in 1:N
+        dm[i, i] = inf
+    end
+
+    return dm
 end
 
 
@@ -61,7 +93,7 @@ function read_tsp_file(filename)
         get(data_dict, "COMMENT", ""),
         get(data_dict, "TYPE", ""),
         get(data_dict, "EDGE_WEIGHT_TYPE", ""),
-        node_data
+        create_distance_matrix(node_data)
     )
 
     return tsp_instance

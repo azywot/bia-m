@@ -1,6 +1,7 @@
 using Combinatorics
 using Random
-# TODO: modify the code to match the current format
+
+include("../utils/eval.jl")
 
 """
 Generate an intra route solution.
@@ -16,6 +17,14 @@ function generate_intra_route_move(solution, dm, indices, mode, reverse_search =
     n = length(solution)
     sol = deepcopy(solution)
     i, j = indices[1], indices[2]
+    if i > j
+        i, j = j, i
+    end
+    
+    # if nodes are already connected by edge
+    if mod(i + 1, n) == mod(j, n) || mod(j + 1, n) == mod(i, n)
+        return sol, 0
+    end
 
     if mode == "node"
         plus_i = dm[sol[mod(j - 2, n)], sol[i]] + dm[sol[i], sol[mod(j, n)+1]]
@@ -26,15 +35,7 @@ function generate_intra_route_move(solution, dm, indices, mode, reverse_search =
         delta = plus_i + plus_j - minus_i - minus_j
         sol[i], sol[j] = sol[j], sol[i]
 
-        # if nodes are already connected by edge
-        if mod(i + 1, n) == mod(j, n) || mod(j + 1, n) == mod(i, n)
-            delta += 2 * dm[sol[i], sol[j]]
-        end
     elseif mode == "edge"
-        # if nodes are already connected by edge
-        if mod(i + 1, n) == mod(j, n) || mod(j + 1, n) == mod(i, n)
-            return sol, 0
-        end
 
         plus, minus = 0, 0
         if reverse_search
@@ -73,32 +74,32 @@ function generate_intra_route_move(solution, dm, indices, mode, reverse_search =
 end
 
 
-"""
-Generate an inter route solution.
-- `solution::Vector{Int}`: solution
-- `distance_matrix::Matrix{Int}`: matrix of distances between nodes
-- `new_node::Int`: number of node to be inserted
-- `idx::Int`: index at which new node will be inserted
+# """
+# Generate an inter route solution.
+# - `solution::Vector{Int}`: solution
+# - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
+# - `new_node::Int`: number of node to be inserted
+# - `idx::Int`: index at which new node will be inserted
 
-returns: a local search solution and its delta
-"""
-function generate_inter_route_move(solution, dm, new_node, idx)
-    n = length(solution)
-    sol = deepcopy(solution)
-    old_node = solution[idx]
+# returns: a local search solution and its delta
+# """
+# function generate_inter_route_move(solution, dm, new_node, idx)
+#     n = length(solution)
+#     sol = deepcopy(solution)
+#     old_node = solution[idx]
 
-    plus =
-        dm[sol[mod(idx - 2, n)+1], new_node] +
-        dm[new_node, sol[mod(idx, n)+1]]
-    minus =
-        dm[sol[mod(idx - 2, n)+1], old_node] +
-        dm[old_node, sol[mod(idx, n)+1]]
+#     plus =
+#         dm[sol[mod(idx - 2, n)+1], new_node] +
+#         dm[new_node, sol[mod(idx, n)+1]]
+#     minus =
+#         dm[sol[mod(idx - 2, n)+1], old_node] +
+#         dm[old_node, sol[mod(idx, n)+1]]
 
-    delta = plus - minus
-    sol[idx] = new_node
+#     delta = plus - minus
+#     sol[idx] = new_node
 
-    return sol, delta
-end
+#     return sol, delta
+# end
 
 
 """
@@ -108,9 +109,9 @@ Generate a local search greedy solution given a starting solution and a mode.
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
 - `mode::String`: mode of the local search, either "node" or "edge"
 
-returns: a local search solution
+returns: a local search solution along with its distance
 """
-function local_greedy_search(solution, distance_matrix, mode = "edge")
+function local_greedy_search(solution, distance_matrix, mode = "node")
     N, _ = size(distance_matrix)
     distance_matrix = deepcopy(distance_matrix)
     best_solution = deepcopy(solution)
@@ -121,36 +122,36 @@ function local_greedy_search(solution, distance_matrix, mode = "edge")
         new_solution = nothing
         delta = 0
         intra_count = 0
-        inter_count = 0
+        # inter_count = 0
 
         node_pairs = shuffle(node_pairs)
-        unvisited = collect(setdiff(Set(1:N), Set(best_solution)))
-        candidate_idx_pairs =
-            shuffle(vec(collect(Iterators.product(unvisited, 1:length(best_solution)))))
+        # unvisited = collect(setdiff(Set(1:N), Set(best_solution)))
+        # candidate_idx_pairs =
+        #     shuffle(vec(collect(Iterators.product(unvisited, 1:length(best_solution)))))
 
         while delta >= 0 &&
-            (intra_count < length(node_pairs) || inter_count < length(candidate_idx_pairs))
-            if rand() < 0.5 && intra_count < length(node_pairs)
-                intra_count += 1
-                indices = node_pairs[intra_count]
-                new_solution, delta =
+            (intra_count < length(node_pairs)) # || inter_count < length(candidate_idx_pairs))
+            # if rand() < 0.5 && intra_count < length(node_pairs)
+            intra_count += 1
+            indices = node_pairs[intra_count]
+            new_solution, delta =
                     generate_intra_route_move(best_solution, distance_matrix, indices, mode)
-            elseif inter_count < length(candidate_idx_pairs)
-                inter_count += 1
-                candidate_node, idx = candidate_idx_pairs[inter_count]
-                new_solution, delta = generate_inter_route_move(
-                    best_solution,
-                    distance_matrix,
-                    candidate_node,
-                    idx,
-                )
-            end
+            # elseif inter_count < length(candidate_idx_pairs)
+            #     inter_count += 1
+            #     candidate_node, idx = candidate_idx_pairs[inter_count]
+            #     new_solution, delta = generate_inter_route_move(
+            #         best_solution,
+            #         distance_matrix,
+            #         candidate_node,
+            #         idx,
+            #     )
+            # end
             if delta < 0
                 best_solution = deepcopy(new_solution)
             end
         end
     end
-    return best_solution
+    return best_solution, evaluate_solution(best_solution, distance_matrix)
 end
 
 
@@ -160,11 +161,10 @@ Generate a local search steepest solution given a starting solution and a mode.
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
 - `mode::String`: mode of the local search, either "node" or "edge"
 
-returns: a local search solution
+returns: a local search solution along with its distance
 """
-function local_steepest_search(solution, distance_matrix, mode = "edge")
+function local_steepest_search(solution, distance_matrix, mode = "node")
 
-    N, _ = size(distance_matrix)
     distance_matrix = deepcopy(distance_matrix)
     best_solution = deepcopy(solution)
 
@@ -173,7 +173,7 @@ function local_steepest_search(solution, distance_matrix, mode = "edge")
     while best_delta < 0
         best_delta = 0
         best_solution_found = nothing
-        unvisited = collect(setdiff(Set(1:N), Set(best_solution)))
+        # unvisited = collect(setdiff(Set(1:N), Set(best_solution)))
 
         for indices in node_pairs
             new_solution, delta =
@@ -184,24 +184,24 @@ function local_steepest_search(solution, distance_matrix, mode = "edge")
             end
         end
 
-        candidate_idx_pairs =
-            vec(collect(Iterators.product(unvisited, 1:length(best_solution))))
-        for pair in candidate_idx_pairs
-            new_solution, delta = generate_inter_route_move(
-                best_solution,
-                distance_matrix,
-                pair[1],
-                pair[2],
-            )
-            if delta < best_delta
-                best_solution_found = deepcopy(new_solution)
-                best_delta = delta
-            end
-        end
+        # candidate_idx_pairs =
+        #     vec(collect(Iterators.product(unvisited, 1:length(best_solution))))
+        # for pair in candidate_idx_pairs
+        #     new_solution, delta = generate_inter_route_move(
+        #         best_solution,
+        #         distance_matrix,
+        #         pair[1],
+        #         pair[2],
+        #     )
+        #     if delta < best_delta
+        #         best_solution_found = deepcopy(new_solution)
+        #         best_delta = delta
+        #     end
+        # end
 
         if best_delta < 0
             best_solution = deepcopy(best_solution_found)
         end
     end
-    return best_solution
+    return best_solution, evaluate_solution(best_solution, distance_matrix)
 end

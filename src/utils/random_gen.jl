@@ -52,12 +52,9 @@ end
 returns: a generated pair
 """
 function generate_random_pair(n::Int)
-    x1 = rand(1:n)
-    x2 = (rand(1:n-1) + x1 + 1) % n + 1 #(n + 1)  # TODO: fix this (there are cases with 0)
-    while x1 == x2
-        x2 = rand(1:n)
-    end
-    return x1, x2 
+    x1 = rand(0:n-1)
+    x2 = (rand(0:n-2) + x1 + 1) % n
+    return x1+1, x2+1
 end
 
 

@@ -111,7 +111,7 @@ Generate a local search greedy solution given a starting solution and a mode.
 
 returns: a local search solution along with its distance
 """
-function local_greedy_search(solution, distance_matrix, mode = "node")
+function local_greedy_search(solution, distance_matrix, mode = "edge")
     N, _ = size(distance_matrix)
     distance_matrix = deepcopy(distance_matrix)
     best_solution = deepcopy(solution)
@@ -163,7 +163,7 @@ Generate a local search steepest solution given a starting solution and a mode.
 
 returns: a local search solution along with its distance
 """
-function local_steepest_search(solution, distance_matrix, mode = "node")
+function local_steepest_search(solution, distance_matrix, mode = "edge")
 
     distance_matrix = deepcopy(distance_matrix)
     best_solution = deepcopy(solution)

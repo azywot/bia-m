@@ -2,6 +2,7 @@ include("utils/random_gen.jl")
 include("utils/read_data.jl")
 include("utils/eval.jl")
 
+include("methods/heuristic.jl")
 include("methods/local_search.jl")
 include("methods/random_search.jl")
 include("methods/random_walk.jl")
@@ -38,7 +39,10 @@ println("Initial solution cost: ", initial_cost)
 random_search_sol, random_search_cost = random_search(initial_solution, test_tsp.distance_matrix)
 println("Random search cost: ", random_search_cost)
 
-random_walk_sol, random_walk_cost = random_walk_v2(initial_solution, test_tsp.distance_matrix, 5)
+heuristic_sol, heuristic_cost = heuristic(N, test_tsp.distance_matrix)
+println("Heuristic cost: ", heuristic_cost)
+
+random_walk_sol, random_walk_cost = random_walk(initial_solution, test_tsp.distance_matrix, 5)
 println("Random walk cost: ", random_walk_cost)
 
 ls_greedy_sol, ls_greedy_cost = local_greedy_search(initial_solution, test_tsp.distance_matrix)

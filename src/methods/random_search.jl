@@ -1,3 +1,4 @@
+include("constants.jl")
 include("../utils/random_gen.jl")
 include("../utils/eval.jl")
 
@@ -10,7 +11,7 @@ include("../utils/eval.jl")
 
 returns: best permutation found along with its distance
 """
-function random_search(initial_solution, distance_matrix, time_limit = 10)
+function random_search(initial_solution, distance_matrix, time_limit = TIME_LIMIT)
 
     N = length(initial_solution)
     best_solution = deepcopy(initial_solution)

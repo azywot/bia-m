@@ -1,3 +1,4 @@
+include("constants.jl")
 include("local_search.jl")
 include("../utils/random_gen.jl")
 
@@ -20,7 +21,7 @@ include("../utils/random_gen.jl")
 
 returns: permutation along with its distance
 """
-function random_walk(initial_solution, distance_matrix, time_limit = 10, mode = "node")
+function random_walk(initial_solution, distance_matrix, time_limit = TIME_LIMIT, mode = "node")
 
     N = length(initial_solution)
     best_solution = deepcopy(initial_solution)

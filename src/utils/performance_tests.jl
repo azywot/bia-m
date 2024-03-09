@@ -67,13 +67,13 @@ function performance_tests(iterations, distance_matrix, method = local_greedy_se
     end
 
     for i in 1:iterations_1
-        solution, solution_cost = method(generate_random_permutation(N), distance_matrix)
-        push!(solution_infos, Solution(Vector{Int}(solution), Int(solution_cost)))
+        solution = method(generate_random_permutation(N), distance_matrix)
+        push!(solution_infos, solution)
     end
 
     if isnothing(best_solution)
         solution_infos = sort(solution_infos)
-        best_solution = solution_infos[1].solution
+        best_solution = solution_infos[1]
         deleteat!(solution_infos, 1)
     end
 
@@ -81,7 +81,7 @@ function performance_tests(iterations, distance_matrix, method = local_greedy_se
         println("Calculating solution distances...")
     end
     for i in 1:iterations
-        edge_distance_best = calculate_solution_distance(solution_infos[i].solution, best_solution)
+        edge_distance_best = calculate_solution_distance(solution_infos[i].solution, best_solution.solution)
         solution_infos[i].edge_distance_best = edge_distance_best
     end
 

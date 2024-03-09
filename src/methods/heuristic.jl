@@ -1,3 +1,4 @@
+include("common.jl")
 include("../utils/eval.jl")
 
 
@@ -7,7 +8,7 @@ include("../utils/eval.jl")
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
 - `config::Dict{K, V}`: dictionary of configuration
 
-returns: a nearest neighbor solution, cost
+returns: `Solution`: a nearest neighbor solution
 """
 function heuristic(solution, distance_matrix, config = nothing)
 
@@ -22,5 +23,6 @@ function heuristic(solution, distance_matrix, config = nothing)
         push!(solution, min_index)
     end
     cost = evaluate_solution(solution, distance_matrix)
-    return solution, cost
+
+    return Solution(Vector{Int}(solution), Int(cost), -1, -1) 
 end

@@ -1,6 +1,7 @@
 using Combinatorics
 using Random
 
+include("common.jl")
 include("../utils/eval.jl")
 include("../utils/combinatorics.jl")
 
@@ -109,7 +110,7 @@ Generate a local search greedy solution given a starting solution and a mode.
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
 - `config::Dict{K, V}`: dictionary of configuration
 
-returns: a local search solution along with its distance
+returns: `Solution`: a greedy local search solution
 """
 function local_greedy_search(solution, distance_matrix, config = Dict())
     N, _ = size(distance_matrix)
@@ -154,7 +155,11 @@ function local_greedy_search(solution, distance_matrix, config = Dict())
             evaluated_solutions += 1
         end
     end
-    return best_solution, evaluate_solution(best_solution, distance_matrix)
+
+    cost = evaluate_solution(best_solution, distance_matrix)
+    final_solution = Solution(Vector{Int}(best_solution), Int(cost), algorithm_steps, evaluated_solutions) 
+
+    return final_solution
 end
 
 
@@ -164,12 +169,14 @@ Generate a local search steepest solution given a starting solution and a mode.
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
 - `config::Dict{K, V}`: dictionary of configuration
 
-returns: a local search solution along with its distance
+returns: `Solution`: a steepest local search solution
 """
 function local_steepest_search(solution, distance_matrix, config = Dict())
 
     distance_matrix = deepcopy(distance_matrix)
     best_solution = deepcopy(solution)
+    algorithm_steps = 0
+    evaluated_solutions = 0
 
     node_pairs = generate_all_pairs(length(solution))
     best_delta = -1
@@ -186,7 +193,9 @@ function local_steepest_search(solution, distance_matrix, config = Dict())
             if delta < best_delta
                 best_solution_found = deepcopy(new_solution)
                 best_delta = delta
+                algorithm_steps += 1
             end
+            evaluated_solutions += 1
         end
 
         # candidate_idx_pairs =
@@ -208,5 +217,9 @@ function local_steepest_search(solution, distance_matrix, config = Dict())
             best_solution = deepcopy(best_solution_found)
         end
     end
-    return best_solution, evaluate_solution(best_solution, distance_matrix)
+
+    cost = evaluate_solution(best_solution, distance_matrix)
+    final_solution = Solution(Vector{Int}(best_solution), Int(cost), algorithm_steps, evaluated_solutions) 
+
+    return final_solution
 end

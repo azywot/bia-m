@@ -18,12 +18,14 @@ include("../utils/random_gen.jl")
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
 - `config::Dict{K, V}` dictionary of configuration
 
-returns: permutation along with its distance
+returns: `Solution`: a random walk solution
 """
 function random_walk(initial_solution, distance_matrix, config = Dict())
 
     N = length(initial_solution)
     best_solution = deepcopy(initial_solution)
+    algorithm_steps = 0
+    evaluated_solutions = 0
 
     time_limit = get(config, "time_limit", TIME_LIMIT)
     start_time = time()
@@ -34,8 +36,12 @@ function random_walk(initial_solution, distance_matrix, config = Dict())
 
         if delta < 0
             best_solution = deepcopy(new_solution)
+            algorithm_steps += 1
         end 
+        evaluated_solutions += 1
     end
 
-    return best_solution, evaluate_solution(best_solution, distance_matrix)
+    cost = evaluate_solution(best_solution, distance_matrix)
+
+    return Solution(Vector{Int}(best_solution), Int(cost), algorithm_steps, evaluated_solutions) 
 end

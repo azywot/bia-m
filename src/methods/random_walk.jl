@@ -1,4 +1,4 @@
-include("constants.jl")
+include("common.jl")
 include("local_search.jl")
 include("../utils/random_gen.jl")
 
@@ -14,23 +14,23 @@ include("../utils/random_gen.jl")
 # • Sampling of the solutions space is less uniform
 """
 # Perform random walk
-- `initial_solution::Vector{Int}`: initial solution (permutation)
+- `solution::Vector{Int}`: initial solution
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
-- `time_limit::Float`: stopping condition
-- `mode::String`: mode of the neighbourhood, either "node" or "edge"
+- `config::Dict{K, V}` dictionary of configuration
 
 returns: permutation along with its distance
 """
-function random_walk(initial_solution, distance_matrix, time_limit = TIME_LIMIT, mode = "node")
+function random_walk(initial_solution, distance_matrix, config = Dict())
 
     N = length(initial_solution)
     best_solution = deepcopy(initial_solution)
 
+    time_limit = get(config, "time_limit", TIME_LIMIT)
     start_time = time()
 
     while (time() - start_time) < time_limit
         indices = generate_random_pair(N)
-        new_solution, delta = generate_intra_route_move(best_solution, distance_matrix, indices, mode)
+        new_solution, delta = generate_intra_route_move(best_solution, distance_matrix, indices, get(config, "mode", "edge"))
 
         if delta < 0
             best_solution = deepcopy(new_solution)

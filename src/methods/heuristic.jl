@@ -3,14 +3,17 @@ include("../utils/eval.jl")
 
 """
 # Generate a heuristic (nearest neighbor) solution
-- `N::Int`: number of nodes
+- `solution::Vector{Int}`: initial solution
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
+- `config::Dict{K, V}`: dictionary of configuration
 
 returns: a nearest neighbor solution, cost
 """
-function heuristic(N, distance_matrix)
+function heuristic(solution, distance_matrix, config = nothing)
+
+    N = length(solution)
     distance_matrix_temp = deepcopy(distance_matrix)
-    solution = [rand(1:N)]
+    solution = [solution[1]]
 
     while length(solution) != ceil(N)
         min_index = argmin(distance_matrix_temp[solution[end], :])

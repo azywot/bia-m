@@ -1,6 +1,7 @@
 include("utils/random_gen.jl")
 include("utils/read_data.jl")
 include("utils/eval.jl")
+include("utils/performance_tests.jl")
 
 include("methods/heuristic.jl")
 include("methods/local_search.jl")
@@ -39,10 +40,10 @@ println("Initial solution cost: ", initial_cost)
 random_search_sol, random_search_cost = random_search(initial_solution, test_tsp.distance_matrix)
 println("Random search cost: ", random_search_cost)
 
-heuristic_sol, heuristic_cost = heuristic(N, test_tsp.distance_matrix)
+heuristic_sol, heuristic_cost = heuristic(initial_solution, test_tsp.distance_matrix)
 println("Heuristic cost: ", heuristic_cost)
 
-random_walk_sol, random_walk_cost = random_walk(initial_solution, test_tsp.distance_matrix, 5)
+random_walk_sol, random_walk_cost = random_walk(initial_solution, test_tsp.distance_matrix)
 println("Random walk cost: ", random_walk_cost)
 
 ls_greedy_sol, ls_greedy_cost = local_greedy_search(initial_solution, test_tsp.distance_matrix)
@@ -50,3 +51,8 @@ println("Local greedy search cost: ", ls_greedy_cost)
 
 ls_steepest_sol, ls_steepest_cost = local_steepest_search(initial_solution, test_tsp.distance_matrix)
 println("Local steepest search cost: ", ls_steepest_cost)
+
+# TODO: plot it (will do shortly)
+similarity_df = performance_tests(100, test_tsp.distance_matrix, local_steepest_search, ls_steepest_sol)
+mean(similarity_df.edge_distance_best)
+std(similarity_df.edge_distance_best)

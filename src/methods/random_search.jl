@@ -1,22 +1,23 @@
-include("constants.jl")
+include("common.jl")
 include("../utils/random_gen.jl")
 include("../utils/eval.jl")
 
 
 """
 # Perform random search
-- `initial_solution::Vector{Int}`: initial solution (permutation)
+- `solution::Vector{Int}`: initial solution
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
-- `time_limit::Float`: stopping condition
+- `config::Dict{K, V}`: dictionary of configuration
 
 returns: best permutation found along with its distance
 """
-function random_search(initial_solution, distance_matrix, time_limit = TIME_LIMIT)
+function random_search(initial_solution, distance_matrix, config = Dict())
 
     N = length(initial_solution)
     best_solution = deepcopy(initial_solution)
     best_distance = evaluate_solution(best_solution, distance_matrix)
 
+    time_limit = get(config, "time_limit", TIME_LIMIT)
     start_time = time()
 
     while time() - start_time < time_limit

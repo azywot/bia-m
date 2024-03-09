@@ -1,6 +1,3 @@
-# TODO:
-# Heuristics -> czy to trzeba na za tydzień?
-
 function measure_time(algorithm, max_duration=10, max_iterations=10)
     i = 0
     start_time = time()

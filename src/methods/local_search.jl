@@ -2,6 +2,7 @@ using Combinatorics
 using Random
 
 include("../utils/eval.jl")
+include("../utils/combinatorics.jl")
 
 """
 Generate an intra route solution.
@@ -104,19 +105,20 @@ end
 
 """
 Generate a local search greedy solution given a starting solution and a mode.
-- `iterations::Int`: number of iterations
 - `solution::Vector{Int}`: initial solution
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
-- `mode::String`: mode of the local search, either "node" or "edge"
+- `config::Dict{K, V}`: dictionary of configuration
 
 returns: a local search solution along with its distance
 """
-function local_greedy_search(solution, distance_matrix, mode = "edge")
+function local_greedy_search(solution, distance_matrix, config = Dict())
     N, _ = size(distance_matrix)
     distance_matrix = deepcopy(distance_matrix)
     best_solution = deepcopy(solution)
+    algorithm_steps = 0
+    evaluated_solutions = 0
 
-    node_pairs = collect(Combinatorics.combinations(1:length(solution), 2))
+    node_pairs = generate_all_pairs(length(solution))
     delta = -1
     while delta < 0
         new_solution = nothing
@@ -134,8 +136,7 @@ function local_greedy_search(solution, distance_matrix, mode = "edge")
             # if rand() < 0.5 && intra_count < length(node_pairs)
             intra_count += 1
             indices = node_pairs[intra_count]
-            new_solution, delta =
-                    generate_intra_route_move(best_solution, distance_matrix, indices, mode)
+            new_solution, delta = generate_intra_route_move(best_solution, distance_matrix, indices, get(config, "mode", "edge"))
             # elseif inter_count < length(candidate_idx_pairs)
             #     inter_count += 1
             #     candidate_node, idx = candidate_idx_pairs[inter_count]
@@ -148,7 +149,9 @@ function local_greedy_search(solution, distance_matrix, mode = "edge")
             # end
             if delta < 0
                 best_solution = deepcopy(new_solution)
+                algorithm_steps += 1
             end
+            evaluated_solutions += 1
         end
     end
     return best_solution, evaluate_solution(best_solution, distance_matrix)
@@ -159,25 +162,27 @@ end
 Generate a local search steepest solution given a starting solution and a mode.
 - `solution::Vector{Int}`: initial solution
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
-- `mode::String`: mode of the local search, either "node" or "edge"
+- `config::Dict{K, V}`: dictionary of configuration
 
 returns: a local search solution along with its distance
 """
-function local_steepest_search(solution, distance_matrix, mode = "edge")
+function local_steepest_search(solution, distance_matrix, config = Dict())
 
     distance_matrix = deepcopy(distance_matrix)
     best_solution = deepcopy(solution)
 
-    node_pairs = collect(Combinatorics.combinations(1:length(solution), 2))
+    node_pairs = generate_all_pairs(length(solution))
     best_delta = -1
     while best_delta < 0
         best_delta = 0
         best_solution_found = nothing
         # unvisited = collect(setdiff(Set(1:N), Set(best_solution)))
 
+        node_pairs = shuffle(node_pairs)
+
         for indices in node_pairs
             new_solution, delta =
-                generate_intra_route_move(best_solution, distance_matrix, indices, mode)
+                generate_intra_route_move(best_solution, distance_matrix, indices, get(config, "mode", "edge"))
             if delta < best_delta
                 best_solution_found = deepcopy(new_solution)
                 best_delta = delta

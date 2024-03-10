@@ -7,15 +7,15 @@ mutable struct Solution
     solution::Vector{Int}
     cost::Int
     # algorithm::String # (e.g. random_walk, not necessary now)
-    edge_distance_best::Int
+    edge_similarity_best::Int
     algorithm_steps::Int
     evaluated_solutions::Int
 end
 
 
 function Solution(solution::Vector{Int}, cost::Int, algorithm_steps::Int, evaluated_solutions::Int)
-    edge_distance_best = -1
-    return Solution(solution, cost, edge_distance_best, algorithm_steps, evaluated_solutions)
+    edge_similarity_best = -1
+    return Solution(solution, cost, edge_similarity_best, algorithm_steps, evaluated_solutions)
 end
 
 
@@ -23,7 +23,7 @@ function Base.show(io::IO, info::Solution)
     println(io, "Solution")
     println(io, "solution: ", info.solution)
     println(io, "cost: ", info.cost)
-    println(io, "edge distance (wrt the best solution): ", info.edge_distance_best)
+    println(io, "edge similarity (wrt the best solution): ", info.edge_similarity_best)
     println(io, "algorithm steps: ", info.algorithm_steps)
     println(io, "evaluated steps: ", info.evaluated_solutions)
 end

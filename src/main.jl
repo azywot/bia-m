@@ -58,8 +58,8 @@ INSTANCES = ["berlin52", "pr76", "st70"]
 CONFIG = Dict("time_limit" => 1)
 
 results_list = []
-column_names = [:instance, :method, :best_case_distance_best, :worst_case_distance_best,
-                 :avg_distance_best, :std_distance_best, :avg_alg_steps, :avg_eval_sol, :running_time]
+column_names = [:instance, :method, :best_case_similarity_best, :worst_case_similarity_best,
+                 :avg_similarity_best, :std_similarity_best, :avg_alg_steps, :avg_eval_sol, :running_time]
 results_stats_df = DataFrame([Vector{Any}() for _ in column_names], column_names)
 
 for method in METHODS
@@ -82,8 +82,8 @@ for method in METHODS
         worst_case = argmax(performance_df.cost)
 
         new_row = DataFrame(instance=[tsp.name], method=[method],
-                            best_case_distance_best=[performance_df.edge_distance_best[best_case]], worst_case_distance_best=[performance_df.edge_distance_best[worst_case]],
-                            avg_distance_best=[mean(performance_df.edge_distance_best)], std_distance_best=[std(performance_df.edge_distance_best)], 
+                            best_case_similarity_best=[performance_df.edge_similarity_best[best_case]], worst_case_similarity_best=[performance_df.edge_similarity_best[worst_case]],
+                            avg_similarity_best=[mean(performance_df.edge_similarity_best)], std_similarity_best=[std(performance_df.edge_similarity_best)], 
                             avg_alg_steps=[mean(performance_df.algorithm_steps)], avg_eval_sol=[mean(performance_df.evaluated_solutions)],
                             running_time=["TBD"]) # TODO (Agata): Running time
         results_stats_df = vcat(results_stats_df, new_row)
@@ -98,4 +98,5 @@ CSV.write(RESULTS_PATH, results_df)
 CSV.write(RESULTS_STATS_PATH, results_stats_df)
 
 # TODO (Agata): Efficiency of algorithms i.e., quality over time (suggest a good measure and justify your choice) 
-create_solution_quality_plot(results_df, "berlin52", "$heuristic", "results/solution_quality_plots")
+# data = CSV.File("results/performance_test.csv") |> DataFrame
+# create_solution_quality_plot(data, "berlin52", "$heuristic", "results/solution_quality_plots")

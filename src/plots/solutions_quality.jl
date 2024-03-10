@@ -15,11 +15,15 @@ returns: nothing
 function create_solution_quality_plot(data::DataFrame, instance::String, method::String, savepath::String)
 
     filtered_data = filter(row -> row.instance == instance && row.method == method, data)
-    scatter(filtered_data.edge_distance_best, filtered_data.cost, color=:green, legend=false)
 
-    title!("QUALITY - $(uppercase(instance)) ($(uppercase(replace("$method", "_" => " "))))")
-    xlabel!("Edge Distance")
-    ylabel!("Cost")
+    color = filtered_data[1, "optimum"] ? :darkgreen : :green
+    scatter(filtered_data.cost, filtered_data.edge_similarity_best, color=color, legend=false)
 
-    savefig(savepath * "/scatter_plot_$(instance)_$(method).svg")
+    quality = filtered_data[1, "optimum"] ? "QUALITY" : "ESTIMATED QUALITY"
+    title!("$quality - $(uppercase(instance)) ($(uppercase(replace("$method", "_" => " "))))")
+
+    xlabel!("Cost")
+    ylabel!("Edge similarity")
+
+    savefig(savepath * "/quality_$(instance)_$(method).svg")
 end

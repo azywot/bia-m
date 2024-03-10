@@ -33,10 +33,10 @@ Calculate the distance between two solutions.
 
 returns: the distance between two solutions
 """
-function calculate_solution_distance(solution1, solution2)
+function calculate_solution_similarity(solution1, solution2)
 
     edge_intersection = intersect(get_solution_edges_set(solution1), get_solution_edges_set(solution2))
-    return length(solution1) - length(edge_intersection)
+    return length(edge_intersection)
 end
 
 
@@ -83,8 +83,8 @@ function performance_test(iterations, distance_matrix, method = local_greedy_sea
         println("Calculating solution distances...")
     end
     for i in 1:iterations
-        edge_distance_best = calculate_solution_distance(solution_infos[i].solution, best_solution)
-        solution_infos[i].edge_distance_best = edge_distance_best
+        edge_similarity_best = calculate_solution_similarity(solution_infos[i].solution, best_solution)
+        solution_infos[i].edge_similarity_best = edge_similarity_best
     end
 
     if verbose

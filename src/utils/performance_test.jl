@@ -98,7 +98,7 @@ function performance_test(iterations, distance_matrix, method = local_greedy_sea
     end
     df.method .= string(method)
 
-    if isnothing(best_solution) || isempty(best_solution)
+    if iterations_1 == iterations+1
         df.optimum .= false # optimum is only estimated
     else
         df.optimum .= true

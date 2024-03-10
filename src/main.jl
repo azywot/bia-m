@@ -8,6 +8,8 @@ include("methods/local_search.jl")
 include("methods/random_search.jl")
 include("methods/random_walk.jl")
 
+include("plots/solutions_quality.jl")
+
 using DataFrames
 using CSV
 
@@ -33,7 +35,7 @@ METHODS = [random_search,
             local_greedy_search, 
             local_steepest_search]
 
-ITERATIONS = 10
+ITERATIONS = 100
 
 # TEST
 # filename = "data/SEL_tsp/ch150.tsp"
@@ -56,7 +58,7 @@ INSTANCES = ["berlin52", "pr76", "st70"]
 CONFIG = Dict("time_limit" => 1)
 
 results_list = []
-column_names = [:instance, :method, :avg_distance_best, :std_distance_best, :avg_alg_steps, :avg_eval_sol]
+column_names = [:instance, :method, :avg_distance_best, :std_distance_best, :avg_alg_steps, :avg_eval_sol, :running_time]
 results_stats_df = DataFrame([Vector{Any}() for _ in column_names], column_names)
 
 for method in METHODS
@@ -77,11 +79,18 @@ for method in METHODS
 
         new_row = DataFrame(instance=[tsp.name], method=[method], 
                             avg_distance_best=[mean(performance_df.edge_distance_best)], std_distance_best=[std(performance_df.edge_distance_best)], 
-                            avg_alg_steps=[mean(performance_df.algorithm_steps)], avg_eval_sol=[mean(performance_df.evaluated_solutions)])
+                            avg_alg_steps=[mean(performance_df.algorithm_steps)], avg_eval_sol=[mean(performance_df.evaluated_solutions)],
+                            running_time=["TBD"]) # TODO (Agata): Running time
         results_stats_df = vcat(results_stats_df, new_row)
+
+        create_solution_quality_plot(performance_df, instance, "$method", "results/solution_quality_plots")
     end
 end
 
 # SAVE RESULTS
-CSV.write(RESULTS_PATH, vcat(results_list...))
+results_df = vcat(results_list...)
+CSV.write(RESULTS_PATH, results_df)
 CSV.write(RESULTS_STATS_PATH, results_stats_df)
+
+# TODO (Agata): Efficiency of algorithms i.e., quality over time (suggest a good measure and justify your choice) 
+# create_solution_quality_plot(results_df, "berlin52", "$heuristic", "results/solution_quality_plots")

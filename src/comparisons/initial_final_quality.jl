@@ -1,25 +1,41 @@
 using CSV
 using Plots
+using Statistics
 
 include("../methods/local_search.jl")
 include("../utils/random_gen.jl")
 include("../utils/read_data.jl")
 
 
+"""
+Plot costs with correlation as title
+
+- `df::DataFrame`: dataframe with initial and final columns
+- `save_path::Str`: path to save the plot
+"""
 function plot_costs(df, save_path)
+    corr = cor(df.initial, df.final)
+    corr = round(corr, digits=3)
     fig = scatter(
         df.initial,
         df.final,
         xlabel="Initial cost",
         ylabel="Final cost",
+        title="Correlation: $corr",
         legend=false,
     )
-
     file_path = joinpath(save_path * ".png")
     savefig(fig, file_path)
 end
 
 
+"""
+Compare initial solution cost with final solution cost (G,S)
+
+- `iterations::Int`: number of iterations
+- `instances::List`: list of instances to perform test
+- `directory_path::Str`: path to directory containing instances
+"""
 function initial_final_quality(iterations, instances, directory_path)
     methods = [local_greedy_search, local_steepest_search]
     for method in methods
@@ -49,7 +65,7 @@ end
 
 directory_path = "data/SEL_tsp"
 INSTANCES = ["berlin52", "ch150", "gil262",
-    "pcb1173", "pr76", "pr226",
-    "pr439", "pr1002", "rat575",
-    "st70", "tsp225", "u724"]
+            "pr76", "pr226",
+            "pr439", "rat575",
+            "st70", "tsp225"]
 initial_final_quality(200, INSTANCES, directory_path)

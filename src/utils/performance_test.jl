@@ -47,11 +47,13 @@ Performance tests on a an algorithm.
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
 - `method::Function`: method to use to generate the solution
 - `best_solution`: best solution to compare
+- `config::Dict{K, V}`: dictionary of configuration
 - `verbose::Bool`: whether to print the results
 
 returns: a dataframe containing the results
 """
-function performance_tests(iterations, distance_matrix, method = local_greedy_search, best_solution = nothing, verbose = false)
+function performance_test(iterations, distance_matrix, method = local_greedy_search, 
+                            best_solution = nothing, config = Dict(), verbose = false)
 
     N = size(distance_matrix)[1]
     solution_infos = []
@@ -60,20 +62,20 @@ function performance_tests(iterations, distance_matrix, method = local_greedy_se
         println("Generating solutions...")
     end
 
-    if isnothing(best_solution)
+    if isnothing(best_solution) || isempty(best_solution)
         iterations_1 = iterations+1
     else
         iterations_1 = iterations
     end
 
     for i in 1:iterations_1
-        solution = method(generate_random_permutation(N), distance_matrix)
+        solution = method(generate_random_permutation(N), distance_matrix, config)
         push!(solution_infos, solution)
     end
 
     if isnothing(best_solution)
         solution_infos = sort(solution_infos)
-        best_solution = solution_infos[1]
+        best_solution = solution_infos[1].solution
         deleteat!(solution_infos, 1)
     end
 
@@ -81,7 +83,7 @@ function performance_tests(iterations, distance_matrix, method = local_greedy_se
         println("Calculating solution distances...")
     end
     for i in 1:iterations
-        edge_distance_best = calculate_solution_distance(solution_infos[i].solution, best_solution.solution)
+        edge_distance_best = calculate_solution_distance(solution_infos[i].solution, best_solution)
         solution_infos[i].edge_distance_best = edge_distance_best
     end
 
@@ -93,6 +95,13 @@ function performance_tests(iterations, distance_matrix, method = local_greedy_se
     fields = filter(f -> f != :solution, fieldnames(Solution))
     for field in fields
         df[!, Symbol(field)] = getfield.(solution_infos, field)
+    end
+    df.method .= string(method)
+
+    if isnothing(best_solution) || isempty(best_solution)
+        df.optimum .= false # optimum is only estimated
+    else
+        df.optimum .= true
     end
 
     return df

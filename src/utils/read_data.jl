@@ -7,6 +7,7 @@ struct TSPInstance
     type::String
     edge_weight_type::String
     distance_matrix::Matrix{Int}
+    opt_tour::Vector{Int}
 end
 
 
@@ -17,6 +18,7 @@ function show(io::IO, tsp::TSPInstance)
     println(io, "  Type: ", tsp.type)
     println(io, "  Edge Weight Type: ", tsp.edge_weight_type)
     println(io, "  Distance matrix: ", size(tsp.distance_matrix))
+    println(io, "  Optimal solution: ", tsp.opt_tour)
 end
 
 
@@ -56,7 +58,7 @@ end
 
 - `filename::String`: filename of TSP instance
 
-returns: Dictionary of TSP instance data
+returns: `TSPInstance`
 """
 function read_tsp_file(filename)
     data_dict = Dict{String, Any}()
@@ -88,12 +90,32 @@ function read_tsp_file(filename)
         end
     end
 
+    opt_tour_filename = replace(filename, ".tsp" => ".opt.tour")
+    opt_tour = []
+    in_tour_section = false
+
+    if isfile(opt_tour_filename)
+        open(opt_tour_filename, "r") do file
+            for line in eachline(opt_tour_filename)
+                if occursin("TOUR_SECTION", line)
+                    in_tour_section = true
+                elseif occursin("EOF", line)
+                    break
+                elseif in_tour_section && !occursin("-1", line)
+                    tour_values = parse.(Int, split(line))
+                    opt_tour = vcat(opt_tour, tour_values)
+                end
+            end
+        end
+    end
+
     tsp_instance = TSPInstance(
         get(data_dict, "NAME", ""),
         get(data_dict, "COMMENT", ""),
         get(data_dict, "TYPE", ""),
         get(data_dict, "EDGE_WEIGHT_TYPE", ""),
-        create_distance_matrix(node_data)
+        create_distance_matrix(node_data),
+        opt_tour
     )
 
     return tsp_instance

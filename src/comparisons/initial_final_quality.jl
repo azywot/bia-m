@@ -63,9 +63,25 @@ function initial_final_quality(iterations, instances, directory_path)
 end
 
 
+"""
+# Run quality comparison experiments
+- `directory_path::String`: path to directory with instances
+- `instances::List`: list of instances to perform test
+- `iterations::Int`: number of iterations to run the algorithm
+"""
+function assess_qualities(directory_path, instances, iterations)
+    methods = [local_greedy_search, local_steepest_search]
+    for method in methods
+        for instance in instances
+            println(method, instance)
+            filename = joinpath(directory_path, instance * ".tsp")
+            tsp = read_tsp_file(filename)
+            initial_final_quality(iterations, instances, directory_path)
+        end
+    end
+end
+
+
 directory_path = "data/SEL_tsp"
-INSTANCES = ["berlin52", "ch150", "gil262",
-            "pr76", "pr226",
-            "pr439", "rat575",
-            "st70", "tsp225"]
-initial_final_quality(200, INSTANCES, directory_path)
+chosen_instances = ["berlin52", "ch150", "pr76", "tsp225"]
+assess_qualities(directory_path, chosen_instances, 200)

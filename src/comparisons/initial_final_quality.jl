@@ -1,6 +1,7 @@
 using CSV
 using Plots
 using Statistics
+using StatsBase
 
 include("../methods/local_search.jl")
 include("../utils/random_gen.jl")
@@ -14,7 +15,7 @@ Plot costs with correlation as title
 - `save_path::Str`: path to save the plot
 """
 function plot_costs(df, save_path)
-    corr = cor(df.initial, df.final)
+    corr = corspearman(Float64.(df.initial), Float64.(df.final))
     corr = round(corr, digits=3)
     fig = scatter(
         df.initial,
@@ -76,5 +77,5 @@ end
 
 
 directory_path = "data/SEL_tsp"
-chosen_instances = ["st70"]
+chosen_instances = ["berlin52", "st70"]
 assess_qualities(directory_path, chosen_instances, 200)

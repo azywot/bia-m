@@ -120,4 +120,3 @@ function read_tsp_file(filename)
 
     return tsp_instance
 end
-

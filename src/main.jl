@@ -35,17 +35,21 @@ METHODS = [random_search,
             local_greedy_search, 
             local_steepest_search]
 
-ITERATIONS = 100
+ITERATIONS = 10
 
 # TEST
-# filename = "data/SEL_tsp/ch150.tsp"
-# test_tsp = read_tsp_file(filename)
-# println(test_tsp)
+filename = "data/SEL_tsp/pr76.tsp"
+test_tsp = read_tsp_file(filename)
+println(test_tsp)
 
-# N = size(test_tsp.distance_matrix)[1]
-# initial_solution = generate_random_permutation(N)
-# initial_cost = evaluate_solution(initial_solution, test_tsp.distance_matrix)
-# println("Initial solution cost: ", initial_cost)
+N = size(test_tsp.distance_matrix)[1]
+initial_solution = generate_random_permutation(N)
+initial_cost = evaluate_solution(initial_solution, test_tsp.distance_matrix)
+println("Initial solution cost: ", initial_cost)
+
+final_solution, time_qual = local_steepest_search(initial_solution, test_tsp.distance_matrix)
+time_qual
+evaluate_solution(final_solution.solution, test_tsp.distance_matrix)
 
 # for method in METHODS
 #     solution = method(initial_solution, test_tsp.distance_matrix)
@@ -58,8 +62,8 @@ INSTANCES = ["berlin52", "pr76", "st70"]
 CONFIG = Dict("time_limit" => 1)
 
 results_list = []
-column_names = [:instance, :method, :best_case_similarity_best, :worst_case_similarity_best,
-                 :avg_similarity_best, :std_similarity_best, :avg_alg_steps, :avg_eval_sol, :running_time]
+column_names = [:instance, :method, :best_case_quality, :worst_case_quality,
+                 :avg_quality, :std_quality, :avg_alg_steps, :avg_eval_sol, :running_time]
 results_stats_df = DataFrame([Vector{Any}() for _ in column_names], column_names)
 
 for method in METHODS
@@ -68,11 +72,10 @@ for method in METHODS
         tsp = read_tsp_file(fielname)
 
         if !isempty(tsp.opt_tour)
-            performance_df = performance_test(ITERATIONS, tsp.distance_matrix, method, tsp.opt_tour, CONFIG)
+            performance_df, running_time = performance_test(ITERATIONS, tsp.distance_matrix, method, tsp.opt_tour, CONFIG)
         else
             println(tsp.name, " does not have an optimum defined!")
-            # TODO: need to prepare estimations, e.g. run 100 steepest ls and save the best solution for each instance to a file
-            performance_df = performance_test(ITERATIONS, tsp.distance_matrix, method, nothing, CONFIG)
+            performance_df, running_time = performance_test(ITERATIONS, tsp.distance_matrix, method, nothing, CONFIG)
         end
 
         push!(results_list, performance_df)
@@ -82,10 +85,10 @@ for method in METHODS
         worst_case = argmax(performance_df.cost)
 
         new_row = DataFrame(instance=[tsp.name], method=[method],
-                            best_case_similarity_best=[performance_df.edge_similarity_best[best_case]], worst_case_similarity_best=[performance_df.edge_similarity_best[worst_case]],
-                            avg_similarity_best=[mean(performance_df.edge_similarity_best)], std_similarity_best=[std(performance_df.edge_similarity_best)], 
+                            best_case_quality=[performance_df.quality[best_case]], worst_case_quality=[performance_df.quality[worst_case]],
+                            avg_quality=[mean(performance_df.quality)], std_quality=[std(performance_df.quality)], 
                             avg_alg_steps=[mean(performance_df.algorithm_steps)], avg_eval_sol=[mean(performance_df.evaluated_solutions)],
-                            running_time=["TBD"]) # TODO (Agata): Running time
+                            running_time=[running_time])
         results_stats_df = vcat(results_stats_df, new_row)
 
         create_solution_quality_plot(performance_df, instance, "$method", "results/solution_quality_plots")

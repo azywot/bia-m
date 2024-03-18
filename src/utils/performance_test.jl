@@ -1,5 +1,6 @@
 include("../methods/all_methods.jl")
 include("../methods/common.jl")
+include("eval.jl")
 
 using DataFrames
 
@@ -26,7 +27,7 @@ end
 
 
 """
-Calculate the distance between two solutions.
+Calculate the similarity between two solutions.
 
 - `solution1::Vector{Int}`: first solution
 - `solution2::Vector{Int}`: second solution
@@ -41,6 +42,20 @@ end
 
 
 """
+Calculate the quality of a solution with respect to the best solution.
+
+- `cost::Vector{Int}`: solution cost
+- `best_cost::Vector{Int}`: best solution cost
+
+returns: solutions'quality
+"""
+function calculate_solution_quality(cost, best_cost)
+    # relative quality (difference)
+    return (cost-best_cost)/best_cost
+end
+
+
+"""
 Performance tests on a an algorithm.
 
 - `iterations::Int`: number of iterations
@@ -50,13 +65,14 @@ Performance tests on a an algorithm.
 - `config::Dict{K, V}`: dictionary of configuration
 - `verbose::Bool`: whether to print the results
 
-returns: a dataframe containing the results
+returns: a dataframe containing the results, running_time
 """
 function performance_test(iterations, distance_matrix, method = local_greedy_search, 
                             best_solution = nothing, config = Dict(), verbose = false)
 
     N = size(distance_matrix)[1]
     solution_infos = []
+    running_times = []
 
     if verbose
         println("Generating solutions...")
@@ -69,7 +85,10 @@ function performance_test(iterations, distance_matrix, method = local_greedy_sea
     end
 
     for i in 1:iterations_1
+        start_time = time()
         solution = method(generate_random_permutation(N), distance_matrix, config)
+        end_time = time()
+        push!(running_times, end_time - start_time)
         push!(solution_infos, solution)
     end
 
@@ -78,6 +97,7 @@ function performance_test(iterations, distance_matrix, method = local_greedy_sea
         best_solution = solution_infos[1].solution
         deleteat!(solution_infos, 1)
     end
+    best_cost = evaluate_solution(best_solution, distance_matrix)
 
     if verbose
         println("Calculating solution distances...")
@@ -85,6 +105,8 @@ function performance_test(iterations, distance_matrix, method = local_greedy_sea
     for i in 1:iterations
         edge_similarity_best = calculate_solution_similarity(solution_infos[i].solution, best_solution)
         solution_infos[i].edge_similarity_best = edge_similarity_best
+        quality = calculate_solution_quality(solution_infos[i].cost, best_cost)
+        solution_infos[i].quality = quality
     end
 
     if verbose
@@ -104,5 +126,5 @@ function performance_test(iterations, distance_matrix, method = local_greedy_sea
         df.optimum .= true
     end
 
-    return df
+    return df, mean(running_times)
 end

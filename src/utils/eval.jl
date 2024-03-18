@@ -18,3 +18,17 @@ function evaluate_solution(solution, distance_matrix)
 
     return total_cost
 end
+
+
+"""
+Calculate the quality of a solution with respect to the best solution.
+
+- `cost::Vector{Int}`: solution cost
+- `best_cost::Vector{Int}`: best solution cost
+
+returns: solutions'quality
+"""
+function calculate_solution_quality(cost, best_cost)
+    # relative quality (difference)
+    return (cost-best_cost)/best_cost
+end

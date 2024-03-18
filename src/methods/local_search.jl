@@ -116,11 +116,21 @@ function local_greedy_search(solution, distance_matrix, config = Dict())
     N, _ = size(distance_matrix)
     distance_matrix = deepcopy(distance_matrix)
     best_solution = deepcopy(solution)
+    best_cost = evaluate_solution(best_solution, distance_matrix)
     algorithm_steps = 0
     evaluated_solutions = 0
 
     node_pairs = generate_all_pairs(length(solution))
     delta = -1
+    
+    quality_over_time = get(config, "quality_over_time", false)
+    if quality_over_time
+        times_qualities = []
+        optimal_cost = config["optimal_cost"]
+        start_time = time()
+        push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
+    end
+
     while delta < 0
         new_solution = nothing
         delta = 0
@@ -150,15 +160,23 @@ function local_greedy_search(solution, distance_matrix, config = Dict())
             # end
             if delta < 0
                 best_solution = deepcopy(new_solution)
+                best_cost += delta
                 algorithm_steps += 1
+            end
+            
+            if quality_over_time
+                push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
             end
             evaluated_solutions += 1
         end
     end
 
-    cost = evaluate_solution(best_solution, distance_matrix)
-    final_solution = Solution(Vector{Int}(best_solution), Int(cost), algorithm_steps, evaluated_solutions) 
+    final_solution = Solution(Vector{Int}(best_solution), Int(best_cost), algorithm_steps, evaluated_solutions) 
 
+    if quality_over_time
+        return final_solution, times_qualities
+    end
+    
     return final_solution
 end
 
@@ -175,11 +193,21 @@ function local_steepest_search(solution, distance_matrix, config = Dict())
 
     distance_matrix = deepcopy(distance_matrix)
     best_solution = deepcopy(solution)
+    best_cost = evaluate_solution(best_solution, distance_matrix)
     algorithm_steps = 0
     evaluated_solutions = 0
 
     node_pairs = generate_all_pairs(length(solution))
     best_delta = -1
+
+    quality_over_time = get(config, "quality_over_time", false)
+    if quality_over_time
+        times_qualities = []
+        optimal_cost = config["optimal_cost"]
+        start_time = time()
+        push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
+    end
+
     while best_delta < 0
         best_delta = 0
         best_solution_found = nothing
@@ -193,7 +221,6 @@ function local_steepest_search(solution, distance_matrix, config = Dict())
             if delta < best_delta
                 best_solution_found = deepcopy(new_solution)
                 best_delta = delta
-                algorithm_steps += 1
             end
             evaluated_solutions += 1
         end
@@ -215,11 +242,20 @@ function local_steepest_search(solution, distance_matrix, config = Dict())
 
         if best_delta < 0
             best_solution = deepcopy(best_solution_found)
+            best_cost += best_delta
+            algorithm_steps += 1
+        end
+
+        if quality_over_time
+            push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
         end
     end
 
-    cost = evaluate_solution(best_solution, distance_matrix)
-    final_solution = Solution(Vector{Int}(best_solution), Int(cost), algorithm_steps, evaluated_solutions) 
+    final_solution = Solution(Vector{Int}(best_solution), Int(best_cost), algorithm_steps, evaluated_solutions) 
 
+    if quality_over_time
+        return final_solution, times_qualities
+    end
+    
     return final_solution
 end

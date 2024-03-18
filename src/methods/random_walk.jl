@@ -1,17 +1,8 @@
 include("common.jl")
 include("local_search.jl")
 include("../utils/random_gen.jl")
+include("../utils/eval.jl")
 
-# Random walk (Jaszkiewicz slides)
-
-# generate and evaluate a random solution
-# repeat
-#     randomly modify and evaluate the current solution
-# until the stopping conditions are met
-# return the best solution found
-
-# • Random modification may be faster than generating a random solution from scratch
-# • Sampling of the solutions space is less uniform
 """
 # Perform random walk
 - `solution::Vector{Int}`: initial solution
@@ -23,25 +14,46 @@ returns: `Solution`: a random walk solution
 function random_walk(initial_solution, distance_matrix, config = Dict())
 
     N = length(initial_solution)
+    current_solution = deepcopy(initial_solution)
+    current_cost = evaluate_solution(initial_solution, distance_matrix)
     best_solution = deepcopy(initial_solution)
+    best_cost = current_cost
     algorithm_steps = 0
     evaluated_solutions = 0
 
     time_limit = get(config, "time_limit", TIME_LIMIT)
     start_time = time()
 
+    quality_over_time = get(config, "quality_over_time", false)
+    if quality_over_time
+        times_qualities = []
+        optimal_cost = config["optimal_cost"]
+        push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
+    end
+
+    # TODO: verify if it's correct!
     while (time() - start_time) < time_limit
         indices = generate_random_pair(N)
-        new_solution, delta = generate_intra_route_move(best_solution, distance_matrix, indices, get(config, "mode", "edge"))
+        new_solution, delta = generate_intra_route_move(current_solution, distance_matrix, indices, get(config, "mode", "edge"))
+        current_solution = new_solution
+        current_cost += delta 
 
-        if delta < 0
-            best_solution = deepcopy(new_solution)
+        if current_cost < best_cost
+            best_solution = deepcopy(current_solution)
+            best_cost = current_cost
             algorithm_steps += 1
+            if quality_over_time
+                push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
+            end
         end 
         evaluated_solutions += 1
     end
 
-    cost = evaluate_solution(best_solution, distance_matrix)
-
-    return Solution(Vector{Int}(best_solution), Int(cost), algorithm_steps, evaluated_solutions) 
+    final_solution = Solution(Vector{Int}(best_solution), Int(best_cost), algorithm_steps, evaluated_solutions) 
+    
+    if quality_over_time
+        return final_solution, times_qualities
+    end
+    
+    return final_solution
 end

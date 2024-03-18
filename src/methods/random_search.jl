@@ -21,6 +21,12 @@ function random_search(initial_solution, distance_matrix, config = Dict())
 
     time_limit = get(config, "time_limit", TIME_LIMIT)
     start_time = time()
+    quality_over_time = get(config, "quality_over_time", false)
+    if quality_over_time
+        times_qualities = []
+        optimal_cost = config["optimal_cost"]
+        push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
+    end
 
     while time() - start_time < time_limit
         permutation = generate_random_permutation(N)
@@ -29,9 +35,17 @@ function random_search(initial_solution, distance_matrix, config = Dict())
             best_solution = permutation
             best_cost = cost
             algorithm_steps += 1
+            if quality_over_time
+                push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
+            end
         end
         evaluated_solutions += 1
     end
-
-    return Solution(Vector{Int}(best_solution), Int(best_cost), algorithm_steps, evaluated_solutions) 
+    final_solution = Solution(Vector{Int}(best_solution), Int(best_cost), algorithm_steps, evaluated_solutions) 
+    
+    if quality_over_time
+        return final_solution, times_qualities
+    end
+    
+    return final_solution
 end

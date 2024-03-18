@@ -42,20 +42,6 @@ end
 
 
 """
-Calculate the quality of a solution with respect to the best solution.
-
-- `cost::Vector{Int}`: solution cost
-- `best_cost::Vector{Int}`: best solution cost
-
-returns: solutions'quality
-"""
-function calculate_solution_quality(cost, best_cost)
-    # relative quality (difference)
-    return (cost-best_cost)/best_cost
-end
-
-
-"""
 Performance tests on a an algorithm.
 
 - `iterations::Int`: number of iterations
@@ -82,6 +68,7 @@ function performance_test(iterations, distance_matrix, method = local_greedy_sea
         iterations_1 = iterations+1
     else
         iterations_1 = iterations
+        best_cost = evaluate_solution(best_solution, distance_matrix)
     end
 
     for i in 1:iterations_1
@@ -95,9 +82,11 @@ function performance_test(iterations, distance_matrix, method = local_greedy_sea
     if isnothing(best_solution)
         solution_infos = sort(solution_infos)
         best_solution = solution_infos[1].solution
+        best_cost = evaluate_solution(best_solution, distance_matrix)
+        println("Best cost found: ", best_cost)
         deleteat!(solution_infos, 1)
     end
-    best_cost = evaluate_solution(best_solution, distance_matrix)
+    
 
     if verbose
         println("Calculating solution distances...")

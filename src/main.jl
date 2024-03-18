@@ -47,9 +47,15 @@ initial_solution = generate_random_permutation(N)
 initial_cost = evaluate_solution(initial_solution, test_tsp.distance_matrix)
 println("Initial solution cost: ", initial_cost)
 
-final_solution, time_qual = local_steepest_search(initial_solution, test_tsp.distance_matrix)
+config = Dict("quality_over_time" => true,
+                "optimal_cost" => evaluate_solution(test_tsp.opt_tour, test_tsp.distance_matrix),
+                "time_limit" => 3)
+
+final_solution, time_qual = local_greedy_search(initial_solution, test_tsp.distance_matrix, config)
 time_qual
-evaluate_solution(final_solution.solution, test_tsp.distance_matrix)
+
+final_solution, time_qual = random_search(initial_solution, test_tsp.distance_matrix, config)
+time_qual
 
 # for method in METHODS
 #     solution = method(initial_solution, test_tsp.distance_matrix)
@@ -59,7 +65,8 @@ evaluate_solution(final_solution.solution, test_tsp.distance_matrix)
 # SHORTENED LISTS TO CHECK
 METHODS = [heuristic, local_greedy_search]
 INSTANCES = ["berlin52", "pr76", "st70"]
-CONFIG = Dict("time_limit" => 1)
+CONFIG = Dict("time_limi
+t" => 1)
 
 results_list = []
 column_names = [:instance, :method, :best_case_quality, :worst_case_quality,

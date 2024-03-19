@@ -1,7 +1,7 @@
 using Combinatorics
 using Random
 
-include("common.jl")
+include("constants.jl")
 include("../utils/eval.jl")
 include("../utils/combinatorics.jl")
 

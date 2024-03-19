@@ -1,8 +1,13 @@
+include("../utils/random_gen.jl")
+include("../utils/read_data.jl")
+
 include("../methods/all_methods.jl")
-include("../methods/common.jl")
+include("../methods/constants.jl")
+include("../plots/solutions_quality.jl")
+include("../plots/solutions_similarity.jl")
 include("eval.jl")
 
-using DataFrames
+using DataFrames, CSV
 
 """
 Get the set of edges of a solution.
@@ -27,7 +32,8 @@ end
 
 
 """
-Calculate the similarity between two solutions.
+Calculate the similarity between two solutions. 
+The similarity is defined as the ratio between intersecting edges and solutions' length
 
 - `solution1::Vector{Int}`: first solution
 - `solution2::Vector{Int}`: second solution
@@ -36,8 +42,12 @@ returns: the distance between two solutions
 """
 function calculate_solution_similarity(solution1, solution2)
 
+    if isnothing(solution1) || isnothing(solution2) || isempty(solution1) || isempty(solution2)
+        return nothing
+    end
+
     edge_intersection = intersect(get_solution_edges_set(solution1), get_solution_edges_set(solution2))
-    return length(edge_intersection)
+    return length(edge_intersection)/length(solution1)
 end
 
 
@@ -46,60 +56,32 @@ Performance tests on a an algorithm.
 
 - `iterations::Int`: number of iterations
 - `distance_matrix::Matrix{Int}`: matrix of distances between nodes
+- `instance::String`: instance name
 - `method::Function`: method to use to generate the solution
 - `best_solution`: best solution to compare
 - `config::Dict{K, V}`: dictionary of configuration
-- `verbose::Bool`: whether to print the results
 
 returns: a dataframe containing the results, running_time
 """
-function performance_test(iterations, distance_matrix, method = local_greedy_search, 
-                            best_solution = nothing, config = Dict(), verbose = false)
+function performance_test(iterations, distance_matrix, instance, method = local_greedy_search, best_solution = nothing,  config = Dict())
 
     N = size(distance_matrix)[1]
     solution_infos = []
     running_times = []
 
-    if verbose
-        println("Generating solutions...")
-    end
-
-    if isnothing(best_solution) || isempty(best_solution)
-        iterations_1 = iterations+1
-    else
-        iterations_1 = iterations
-        best_cost = evaluate_solution(best_solution, distance_matrix)
-    end
-
-    for i in 1:iterations_1
+    for i in 1:iterations
         start_time = time()
         solution = method(generate_random_permutation(N), distance_matrix, config)
         end_time = time()
         push!(running_times, end_time - start_time)
         push!(solution_infos, solution)
     end
-
-    if isnothing(best_solution)
-        solution_infos = sort(solution_infos)
-        best_solution = solution_infos[1].solution
-        best_cost = evaluate_solution(best_solution, distance_matrix)
-        println("Best cost found: ", best_cost)
-        deleteat!(solution_infos, 1)
-    end
     
-
-    if verbose
-        println("Calculating solution distances...")
-    end
     for i in 1:iterations
-        edge_similarity_best = calculate_solution_similarity(solution_infos[i].solution, best_solution)
-        solution_infos[i].edge_similarity_best = edge_similarity_best
-        quality = calculate_solution_quality(solution_infos[i].cost, best_cost)
+        similarity_best = calculate_solution_similarity(solution_infos[i].solution, best_solution)
+        solution_infos[i].similarity_best = similarity_best
+        quality = calculate_solution_quality(solution_infos[i].cost, OPTIMUM_COST[instance])
         solution_infos[i].quality = quality
-    end
-
-    if verbose
-        println(solution_infos)
     end
 
     df = DataFrame()
@@ -109,11 +91,72 @@ function performance_test(iterations, distance_matrix, method = local_greedy_sea
     end
     df.method .= string(method)
 
-    if iterations_1 == iterations+1
-        df.optimum .= false # optimum is only estimated
-    else
-        df.optimum .= true
+    return df, mean(running_times)
+end
+
+
+"""
+# Run a performance analysis.
+- `instances::Vector{String}`: instances names
+- `methods::Matrix{Any}`: methods to check
+- `iterations::Int`: number of iterations for an experiment
+- `similarity_analysis::Bool`: whether to include the similarity analysis, default false
+
+returns: nothing
+"""
+function run_performance_analysis(instances, methods, iterations, similarity_analysis = false)
+
+    results_path = "results/performance_test.csv"
+    results_stats_path = "results/performance_test_stats.csv"
+
+    config = Dict()
+    results_list = []
+    column_names = [:instance, :method, :best_case_quality, :worst_case_quality,
+                    :avg_quality, :std_quality, :avg_alg_steps, :avg_eval_sol, :running_time]
+    results_stats_df = DataFrame([Vector{Any}() for _ in column_names], column_names)
+    
+    for instance in instances
+        config["time_limit"] = nothing
+        for method in methods
+            println(instance, ":\t", method)
+            fielname = joinpath(DATA_DIR, instance * ".tsp")
+            tsp = read_tsp_file(fielname)
+
+            performance_df, running_time = performance_test(iterations, tsp.distance_matrix, instance, method, tsp.opt_tour, config)
+
+            if isnothing(config["time_limit"])
+                config["time_limit"] = running_time
+            end
+
+            push!(results_list, performance_df)
+            performance_df.instance .= tsp.name
+
+            best_case = argmin(performance_df.cost)
+            worst_case = argmax(performance_df.cost)
+
+            new_row = DataFrame(instance=[tsp.name], method=[method],
+                                best_case_quality=[performance_df.quality[best_case]], worst_case_quality=[performance_df.quality[worst_case]],
+                                avg_quality=[mean(performance_df.quality)], std_quality=[std(performance_df.quality)], 
+                                avg_alg_steps=[mean(performance_df.algorithm_steps)], avg_eval_sol=[mean(performance_df.evaluated_solutions)],
+                                running_time=[running_time])
+
+            results_stats_df = vcat(results_stats_df, new_row)
+
+            # SAVE PLOTS (SIMILARITY) - NOTE: only for ones with a optimal solution known
+            if similarity_analysis && !isempty(tsp.opt_tour)
+                create_solution_similarity_plot(performance_df, instance, "$method", "results/solution_similarity_plots")
+            end
+        end
     end
 
-    return df, mean(running_times)
+    results_df = vcat(results_list...)
+    CSV.write(results_path, results_df)
+
+    results_stats_df.method = map(string, results_stats_df.method)
+    CSV.write(results_stats_path, results_stats_df)
+
+    # SAVE PLOTS (QUALITY)
+    create_solution_quality_plots(results_stats_df, "results/quality")
+    without_random = filter(row -> !(row.method in ["random_search", "random_walk"]), results_stats_df)
+    create_solution_quality_plots(without_random, "results/quality_without_random")
 end

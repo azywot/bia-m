@@ -1,4 +1,4 @@
-include("common.jl")
+include("constants.jl")
 include("local_search.jl")
 include("../utils/random_gen.jl")
 include("../utils/eval.jl")
@@ -18,7 +18,6 @@ function random_walk(initial_solution, distance_matrix, config = Dict())
     current_cost = evaluate_solution(initial_solution, distance_matrix)
     best_solution = deepcopy(initial_solution)
     best_cost = current_cost
-    algorithm_steps = 0
     evaluated_solutions = 0
 
     time_limit = get(config, "time_limit", TIME_LIMIT)
@@ -41,7 +40,6 @@ function random_walk(initial_solution, distance_matrix, config = Dict())
         if current_cost < best_cost
             best_solution = deepcopy(current_solution)
             best_cost = current_cost
-            algorithm_steps += 1
             if quality_over_time
                 push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
             end
@@ -49,7 +47,7 @@ function random_walk(initial_solution, distance_matrix, config = Dict())
         evaluated_solutions += 1
     end
 
-    final_solution = Solution(Vector{Int}(best_solution), Int(best_cost), algorithm_steps, evaluated_solutions) 
+    final_solution = Solution(Vector{Int}(best_solution), Int(best_cost), -1, evaluated_solutions) 
     
     if quality_over_time
         return final_solution, times_qualities

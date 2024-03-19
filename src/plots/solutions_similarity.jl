@@ -16,12 +16,12 @@ function create_solution_similarity_plot(data::DataFrame, instance::String, meth
 
     filtered_data = filter(row -> row.instance == instance && row.method == method, data)
 
-    color = filtered_data[1, "optimum"] ? :darkgreen : :green
-    scatter(filtered_data.cost, filtered_data.edge_similarity_best, color=color, legend=false)
+    scatter(filtered_data.quality, filtered_data.similarity_best, color=:green, legend=false, ylims = (0,1)) # TODO: should the lim be fixed?
     title!("$(uppercase(instance)) - $(uppercase(replace("$method", "_" => " ")))")
 
-    xlabel!("Cost")
-    ylabel!("Edge similarity (wrt the optimum)")
+    # both relative distance and similarity are with respect to the optimum/best solution found
+    xlabel!("relative distance")
+    ylabel!("similarity")
 
-    savefig(savepath * "/similarity_$(instance)_$(method).svg")
+    savefig(savepath * "/similarity_$(instance)_$(method).png")
 end

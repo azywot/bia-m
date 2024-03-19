@@ -1,4 +1,4 @@
-include("common.jl")
+include("constants.jl")
 include("../utils/random_gen.jl")
 include("../utils/eval.jl")
 
@@ -16,7 +16,6 @@ function random_search(initial_solution, distance_matrix, config = Dict())
     N = length(initial_solution)
     best_solution = deepcopy(initial_solution)
     best_cost = evaluate_solution(best_solution, distance_matrix)
-    algorithm_steps = 0
     evaluated_solutions = 0
 
     time_limit = get(config, "time_limit", TIME_LIMIT)
@@ -34,14 +33,13 @@ function random_search(initial_solution, distance_matrix, config = Dict())
         if cost < best_cost
             best_solution = permutation
             best_cost = cost
-            algorithm_steps += 1
             if quality_over_time
                 push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
             end
         end
         evaluated_solutions += 1
     end
-    final_solution = Solution(Vector{Int}(best_solution), Int(best_cost), algorithm_steps, evaluated_solutions) 
+    final_solution = Solution(Vector{Int}(best_solution), Int(best_cost), -1, evaluated_solutions) 
     
     if quality_over_time
         return final_solution, times_qualities

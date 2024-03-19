@@ -85,3 +85,9 @@ function permutation_test(n::Int, num_samples::Int)
         ylabel="Occurences")
     return 1 - std(vals) / num_samples, counts, histogram
 end
+
+
+# n = 5
+# randomness_measure, counts, histogram = permutation_test(n, factorial(n) * 1000)
+# randomness_measure
+# histogram

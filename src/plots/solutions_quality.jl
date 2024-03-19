@@ -1,5 +1,10 @@
-using DataFrames
-using Plots
+using DataFrames, StatsPlots, CategoricalArrays
+
+
+function extract_nodes(instance::String)
+    digits = filter(x -> isdigit(x), instance)
+    return parse(Int, digits)
+end
 
 
 """
@@ -12,18 +17,28 @@ Create a scatter plot depicting the quality of a TSP algorithm for an instance a
 
 returns: nothing
 """
-function create_solution_quality_plot(data::DataFrame, instance::String, method::String, savepath::String)
+function create_solution_quality_plot(data::DataFrame, savepath::String)
 
-    filtered_data = filter(row -> row.instance == instance && row.method == method, data)
+    df = deepcopy(data)
+    df.method = map(method -> replace(string(method), "_" => " "), df.method)
+    df.avg_quality = map(Float64, df.avg_quality)
+    df.std_quality = map(Float64, df.std_quality)
+    df.nodes = extract_nodes.(df.instance)
+    df = sort(df, [:nodes])
+    df.instance = CategoricalArray(df.instance, levels = unique(df.instance))
 
-    color = filtered_data[1, "optimum"] ? :darkgreen : :green
-    scatter(filtered_data.cost, filtered_data.edge_similarity_best, color=color, legend=false)
+    plot = groupedbar(
+                df.instance, 
+                df.avg_quality, 
+                yerr = df.std_quality, 
+                group =  df.method, 
+                ylabel = "relative distance", 
+                title = "Average distance from the optimum",
+                bar_width = 0.67, 
+                c = [:blue3 :green :green3 :red2 :red3], 
+                markerstrokewidth = 1.5,
+            )
 
-    quality = filtered_data[1, "optimum"] ? "QUALITY" : "ESTIMATED QUALITY"
-    title!("$quality - $(uppercase(instance)) ($(uppercase(replace("$method", "_" => " "))))")
+    savefig(plot, savepath * "/solution_quality_plot.svg")
 
-    xlabel!("Cost")
-    ylabel!("Edge similarity")
-
-    savefig(savepath * "/quality_$(instance)_$(method).svg")
 end

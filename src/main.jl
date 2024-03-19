@@ -10,7 +10,7 @@ include("methods/random_walk.jl")
 
 include("plots/solutions_quality.jl")
 
-using DataFrames
+using DataFrames, CSV
 using CSV
 
 # n = 5
@@ -38,24 +38,25 @@ METHODS = [random_search,
 ITERATIONS = 10
 
 # TEST
-filename = "data/SEL_tsp/pr76.tsp"
-test_tsp = read_tsp_file(filename)
-println(test_tsp)
+# filename = "data/SEL_tsp/pr76.tsp"
+# test_tsp = read_tsp_file(filename)
+# println(test_tsp)
 
-N = size(test_tsp.distance_matrix)[1]
-initial_solution = generate_random_permutation(N)
-initial_cost = evaluate_solution(initial_solution, test_tsp.distance_matrix)
-println("Initial solution cost: ", initial_cost)
+# N = size(test_tsp.distance_matrix)[1]
+# initial_solution = generate_random_permutation(N)
+# initial_cost = evaluate_solution(initial_solution, test_tsp.distance_matrix)
+# println("Initial solution cost: ", initial_cost)
 
-config = Dict("quality_over_time" => true,
-                "optimal_cost" => evaluate_solution(test_tsp.opt_tour, test_tsp.distance_matrix),
-                "time_limit" => 3)
+# config = Dict("quality_over_time" => true,
+#                 "optimal_cost" => evaluate_solution(test_tsp.opt_tour, test_tsp.distance_matrix),
+#                 "time_limit" => 3)
 
-final_solution, time_qual = local_greedy_search(initial_solution, test_tsp.distance_matrix, config)
-time_qual
+# final_solution, time_qual = local_greedy_search(initial_solution, test_tsp.distance_matrix, config)
+# time_qual
 
-final_solution, time_qual = random_search(initial_solution, test_tsp.distance_matrix, config)
-time_qual
+# final_solution, time_qual = random_search(initial_solution, test_tsp.distance_matrix, config)
+# time_qual
+# # TODO: transform time_qual!
 
 # for method in METHODS
 #     solution = method(initial_solution, test_tsp.distance_matrix)
@@ -63,10 +64,9 @@ time_qual
 # end
 
 # SHORTENED LISTS TO CHECK
-METHODS = [heuristic, local_greedy_search]
-INSTANCES = ["berlin52", "pr76", "st70"]
-CONFIG = Dict("time_limi
-t" => 1)
+METHODS = [heuristic, local_greedy_search, local_steepest_search]
+INSTANCES = ["berlin52", "pr76", "st70", "ch150"]
+CONFIG = Dict("time_limit" => 10)
 
 results_list = []
 column_names = [:instance, :method, :best_case_quality, :worst_case_quality,
@@ -75,6 +75,7 @@ results_stats_df = DataFrame([Vector{Any}() for _ in column_names], column_names
 
 for method in METHODS
     for instance in INSTANCES
+        # println(method, ":\t", instance)
         fielname = joinpath(directory_path, instance * ".tsp")
         tsp = read_tsp_file(fielname)
 
@@ -106,6 +107,8 @@ end
 results_df = vcat(results_list...)
 CSV.write(RESULTS_PATH, results_df)
 CSV.write(RESULTS_STATS_PATH, results_stats_df)
+
+create_solution_quality_plot(results_stats_df, "results/")
 
 # TODO (Agata): Efficiency of algorithms i.e., quality over time (suggest a good measure and justify your choice) 
 # data = CSV.File("results/performance_test.csv") |> DataFrame

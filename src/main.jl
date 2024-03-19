@@ -28,13 +28,13 @@ run_performance_analysis(instances, methods, iterations)
 
 
 # 2.2.3
-similarity_instances = ["berlin52", "pr76", "st70"] # select some interesting instances
+similarity_instances = ["berlin52", "ch150", "tsp225"] # select some interesting instances
 similarity_methods = [ 
             local_steepest_search,
             local_greedy_search, 
         ]
-similarity_iterations = 100 # minimum 100
-run_performance_analysis(similarity_instances, similarity_methods, similarity_iterations, true) # similarity_analysis
+similarity_iterations = 100
+run_performance_analysis(similarity_instances, similarity_methods, similarity_iterations, true)
 
 
 # 2.1.3 TODO (Agata)

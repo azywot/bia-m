@@ -1,4 +1,5 @@
 using Distances
+using DataFrames
 import Base.show
 
 struct TSPInstance
@@ -119,4 +120,65 @@ function read_tsp_file(filename)
     )
 
     return tsp_instance
+end
+
+
+function performance_results_to_latex(df::DataFrame)
+
+    col_names = names(df)
+    n = length(unique(df.method))
+    
+    latex_str = "\\begin{table}[h]\n"
+    latex_str *= "\\centering\n"
+    latex_str *= "\\begin{tabular}{"
+    
+    for i in 1:length(col_names)
+        latex_str *= "c|"
+    end
+    latex_str = latex_str[1:end-1]
+    
+    latex_str *= "}\n"
+
+    for col in col_names
+        latex_str *= "$col & "
+    end
+    latex_str = latex_str[1:end-2]
+    latex_str *= "\\\\\n"
+    
+    latex_str *= "\\hline\n"
+    grouped_df = groupby(df, :instance)
+    
+    for group in grouped_df
+        instance_name = unique(group.instance)[1]
+        latex_str *= "\\multirow{$n}{*}{$instance_name} "
+        for row in eachrow(group)
+            latex_str *= "& "
+            for col in col_names[2:end]
+                val = row[col]
+                if typeof(val) <: Number
+                    latex_str *= string(round(val, digits=4)) * " & " # digits
+                else
+                    latex_str *= string(val) * " & "
+                end
+            end
+            latex_str = latex_str[1:end-2]
+            latex_str *= "\\\\\n"
+        end
+        latex_str *= "\\hline\n"
+    end
+    
+    latex_str *= "\\end{tabular}\n"
+    latex_str *= "\\caption{caption}\n"
+    latex_str *= "\\label{label}\n"
+    latex_str *= "\\end{table}"
+
+    latex_str = replace(latex_str, "local_steepest_search" => "LS")
+    latex_str = replace(latex_str, "local_greedy_search" => "LG")
+    latex_str = replace(latex_str, "random_walk" => "RW")
+    latex_str = replace(latex_str, "random_search" => "RS")
+    latex_str = replace(latex_str, "heuristic" => "H")
+    latex_str = replace(latex_str, "_" => " ")
+    latex_str = replace(latex_str, "-1.0" => "-")
+
+    return latex_str
 end

@@ -162,11 +162,12 @@ function local_greedy_search(solution, distance_matrix, config = Dict())
                 best_solution = deepcopy(new_solution)
                 best_cost += delta
                 algorithm_steps += 1
+
+                if quality_over_time
+                    push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
+                end
             end
             
-            if quality_over_time
-                push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
-            end
             evaluated_solutions += 1
         end
     end
@@ -244,10 +245,10 @@ function local_steepest_search(solution, distance_matrix, config = Dict())
             best_solution = deepcopy(best_solution_found)
             best_cost += best_delta
             algorithm_steps += 1
-        end
-
-        if quality_over_time
-            push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
+            
+            if quality_over_time
+                push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
+            end
         end
     end
 

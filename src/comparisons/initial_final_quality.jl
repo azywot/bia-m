@@ -4,6 +4,7 @@ using Statistics
 using StatsBase
 
 include("../methods/local_search.jl")
+include("../utils/eval.jl")
 include("../utils/random_gen.jl")
 include("../utils/read_data.jl")
 
@@ -20,8 +21,8 @@ function plot_costs(df, save_path)
     fig = scatter(
         df.initial,
         df.final,
-        xlabel="Initial cost",
-        ylabel="Final cost",
+        xlabel="Initial quality",
+        ylabel="Final quality",
         title="Correlation: $corr",
         legend=false,
     )
@@ -46,8 +47,8 @@ function initial_final_quality(iterations, tsp, method, instance)
         initial_cost = evaluate_solution(initial_solution, tsp.distance_matrix)
         final_solution = method(initial_solution, tsp.distance_matrix)
         final_cost = final_solution.cost
-        push!(costs_i, initial_cost)
-        push!(costs_f, final_cost)
+        push!(costs_i, calculate_solution_quality(initial_cost, OPTIMUM_COST[instance]))
+        push!(costs_f, calculate_solution_quality(final_cost, OPTIMUM_COST[instance]))
     end
     save_path = "output/initial_final_quality/$method/$instance"
     df = DataFrame(initial=costs_i, final=costs_f)
@@ -77,5 +78,5 @@ end
 
 
 directory_path = "data/SEL_tsp"
-chosen_instances = ["berlin52", "st70"]
+chosen_instances = ["berlin52", "ch150", "tsp225"]
 assess_qualities(directory_path, chosen_instances, 200)

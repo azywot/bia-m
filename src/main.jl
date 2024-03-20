@@ -11,7 +11,7 @@ include("utils/performance_test.jl")
 #             "pr76", "pr226", 
 #             "pr439", "rat575", 
 #             "st70","tsp225", "u724"]
-config = Dict{String, Any}("quality_over_time" => true)
+config = Dict{String, Any}("quality_over_time" => true, "similarity_analysis" => true)
 instances = ["berlin52", "pr76", "st70"]
 methods = [ 
             local_steepest_search, # sets the time for random_* methods

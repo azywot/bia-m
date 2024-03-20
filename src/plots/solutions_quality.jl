@@ -1,5 +1,16 @@
-using DataFrames, StatsPlots, CategoricalArrays
+using DataFrames, Plots,StatsPlots, CategoricalArrays, Glob
 
+COLORS = Dict("random_search" => :red, 
+              "random_walk" => :darkred, 
+              "heuristic" => :blue3, 
+              "local_greedy_search" => :green, 
+              "local_steepest_search" => :green3)
+
+METHOD_SYMBOLS = Dict("random_search" => "RS", 
+                "random_walk" => "RW", 
+                "heuristic" => "H", 
+                "local_greedy_search" => "G", 
+                "local_steepest_search" => "S")
 
 function extract_nodes(instance::String)
     digits = filter(x -> isdigit(x), instance)
@@ -8,33 +19,32 @@ end
 
 
 """
-Create a scatter plot depicting the quality of a TSP algorithm for an instance and save it.
+Create a bar plot depicting the quality of a TSP solutions and save it.
 
 - `data::DataFrame`: data
-- `instance::String`: the considered
-- `method::String`: method considered
 - `savepath::String`: path to save 
+- `stat::String`: statistic to consider
 
 returns: nothing
 """
 function create_solution_quality_plot(data::DataFrame, savepath::String, stat::String = "avg_quality")
 
     df = deepcopy(data)
-    df.method = map(method -> replace(string(method), "_" => " "), df.method)
+    df.method = map(string, df.method)
+    df.method_renamed = map(method -> get(METHOD_SYMBOLS, method, method), df.method)
     df.avg_quality = map(Float32, df.avg_quality)
     df.best_case_quality= map(Float32, df.best_case_quality)
     df.worst_case_quality = map(Float32, df.worst_case_quality)
     df.std_quality = map(Float32, df.std_quality)
     df.nodes = extract_nodes.(df.instance)
     
-    method_order = Dict("random search" => 1, "random walk" => 2, "heuristic" => 3, "local greedy search" => 4, "local steepest search" => 5)
-    df = sort(df, :method, by = x -> get(method_order, x, length(method_order)))
+    method_order = Dict("RS" => 1, "RW" => 2, "H" => 3, "G" => 4, "S" => 5)
+    df = sort(df, :method_renamed, by = x -> get(method_order, x, length(method_order)))
     df = sort(df, [:nodes])
     df.instance = CategoricalArray(df.instance, levels = unique(df.instance))
-    df.method = CategoricalArray(df.method, levels = unique(df.method))
+    df.method_renamed = CategoricalArray(df.method_renamed, levels = unique(df.method_renamed))
 
-    colors = Dict("random search" => :red, "random walk" => :darkred, "heuristic" => :blue3, "local greedy search" => :green, "local steepest search" => :green3)
-    color_list = [get(colors, m, :black) for m in df.method]
+    color_list = [get(COLORS, m, :black) for m in df.method]
     yerr = stat == "avg_quality" ?  df.std_quality : nothing
     prefix = stat == "avg_quality" ?  "Average" : (stat == "best_case_quality" ?  "The closest" : "The furthest")
 
@@ -42,7 +52,7 @@ function create_solution_quality_plot(data::DataFrame, savepath::String, stat::S
                 df.instance, 
                 df[:, Symbol(stat)], 
                 yerr = yerr, 
-                group =  df.method, 
+                group =  df.method_renamed, 
                 ylabel = "relative distance", 
                 title = "$prefix distances from the optimum",
                 bar_width = 0.67, 
@@ -61,3 +71,66 @@ function create_solution_quality_plots(data::DataFrame, savepath::String)
     create_solution_quality_plot(data, savepath, "best_case_quality")
     create_solution_quality_plot(data, savepath, "worst_case_quality")
 end
+
+
+
+"""
+Create a line plot depicting the quality over time for different methods for a given instance of TSP.
+
+- `instance::String`: instance name
+- `path::String`: data path and the path to save
+
+returns: nothing
+"""
+function create_quality_over_time_plot(instance::String, path::String)
+
+    files = glob("$instance*.csv", path)
+    data = Dict{String, Any}()
+    heuristic_df = nothing
+    lengths = []
+
+    for file in files 
+        method = last(split(file, "/"))
+        method = replace(method, instance * "_" => "")
+        method = replace(method, ".csv" => "")
+        df = CSV.read(file, DataFrame)
+        if method == "heuristic"
+            heuristic_df = df
+        else
+            data[method] = df
+            push!(lengths, size(df, 1))
+        end
+    end
+
+    first = true
+    for (method, df) in data
+        if first
+            plot(df.time, 
+                df.quality, 
+                label=get(METHOD_SYMBOLS, method, method), 
+                color=get(COLORS, method, :black), 
+                linewidth=2, 
+                legend=:topright)
+            first = false
+        else
+            plot!(df.time, 
+                  df.quality, 
+                  label=get(METHOD_SYMBOLS, method, method), 
+                  color=get(COLORS, method, :black), 
+                  linewidth=2)
+        end
+    end
+    if !isnothing(heuristic_df)
+        scatter!(heuristic_df.time, 
+                 heuristic_df.quality, 
+                 label=get(METHOD_SYMBOLS, "heuristic", "heuristic"), 
+                 color=get(COLORS, "heuristic", :black), 
+                 markersize=5)
+    end
+    xlabel!("time [s]")
+    ylabel!("relative distance")
+    title!("$instance - quality over time")
+    savefig(path * "$instance" * "_quality_over_time_plot.png")
+end
+
+# create_quality_over_time_plot("st70", "results/time_quality/")

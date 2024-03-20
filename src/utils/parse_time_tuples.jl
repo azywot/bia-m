@@ -56,9 +56,7 @@ function transform_time_tuples(tuples, digits = 2)
     if length(time_list) == 0
         return [], []
     end
-    
-    time_list[1] = tuples[1][1]
-    quality_list[1] = tuples[1][2]
+
     time_list[end] = time_x
     quality_list[end] = mean(to_be_averaged)
 
@@ -71,6 +69,8 @@ function transform_time_tuples(tuples, digits = 2)
 
     deleteat!(time_list, to_delete)
     deleteat!(quality_list, to_delete)
+    push!(time_list, round(time_x+increment, digits=digits))
+    pushfirst!(quality_list, tuples[1][2])
 
     return time_list, quality_list
 end

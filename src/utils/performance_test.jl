@@ -155,6 +155,10 @@ function run_performance_analysis(instances, methods, iterations, config = Dict(
                 time_quality_df = DataFrame(time = results["quality_over_time"][1], 
                                             quality = results["quality_over_time"][2])
                 CSV.write(time_quality_dir * "$instance" * "_$method.csv", time_quality_df)
+            elseif get(config, "quality_over_time", false) && "$method" == "heuristic"
+                time_quality_df = DataFrame(time = [running_time], 
+                                            quality = [mean(performance_df.quality)])
+                CSV.write(time_quality_dir * "$instance" * "_$method.csv", time_quality_df)
             end
 
             if isnothing(config["time_limit"])
@@ -178,6 +182,10 @@ function run_performance_analysis(instances, methods, iterations, config = Dict(
             # SAVE PLOTS (SIMILARITY) - NOTE: only for ones with a optimal solution known
             if get(config, "similarity_analysis", false) && !isempty(tsp.opt_tour)
                 create_solution_similarity_plot(performance_df, instance, "$method", "results/solution_similarity_plots")
+            end
+
+            if get(config, "similarity_analysis", false)
+                create_quality_over_time_plot(instance, time_quality_dir)
             end
         end
         # Save/update results every instance

@@ -184,7 +184,7 @@ function run_performance_analysis(instances, methods, iterations, config = Dict(
                 create_solution_similarity_plot(performance_df, instance, "$method", "results/solution_similarity_plots")
             end
 
-            if get(config, "similarity_analysis", false)
+            if get(config, "quality_over_time", false)
                 create_quality_over_time_plot(instance, time_quality_dir)
             end
         end

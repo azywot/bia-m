@@ -36,7 +36,7 @@ function create_solution_quality_plot(data::DataFrame, savepath::String, stat::S
     colors = Dict("random search" => :red, "random walk" => :darkred, "heuristic" => :blue3, "local greedy search" => :green, "local steepest search" => :green3)
     color_list = [get(colors, m, :black) for m in df.method]
     yerr = stat == "avg_quality" ?  df.std_quality : nothing
-    prefix = stat == "avg_quality" ?  "Average" : (stat == "best_case_quality" ?  "The best" : "The worst")
+    prefix = stat == "avg_quality" ?  "Average" : (stat == "best_case_quality" ?  "The closest" : "The furthest")
 
     plot = groupedbar(
                 df.instance, 

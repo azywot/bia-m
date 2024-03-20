@@ -126,7 +126,7 @@ function local_greedy_search(solution, distance_matrix, config = Dict())
     quality_over_time = get(config, "quality_over_time", false)
     if quality_over_time
         times_qualities = []
-        optimal_cost = config["optimal_cost"]
+        optimal_cost = OPTIMUM_COST[config["instance"]]
         start_time = time()
         push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
     end
@@ -204,7 +204,7 @@ function local_steepest_search(solution, distance_matrix, config = Dict())
     quality_over_time = get(config, "quality_over_time", false)
     if quality_over_time
         times_qualities = []
-        optimal_cost = config["optimal_cost"]
+        optimal_cost = OPTIMUM_COST[config["instance"]]
         start_time = time()
         push!(times_qualities, (round(time()-start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
     end

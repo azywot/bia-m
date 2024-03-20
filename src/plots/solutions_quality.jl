@@ -106,7 +106,7 @@ function create_quality_over_time_plot(instance::String, path::String)
     for (method, df) in data
         if first
             plot(df.time, 
-                df.quality, 
+                df.avg_quality, 
                 label=get(METHOD_SYMBOLS, method, method), 
                 color=get(COLORS, method, :black), 
                 linewidth=2, 
@@ -114,15 +114,23 @@ function create_quality_over_time_plot(instance::String, path::String)
             first = false
         else
             plot!(df.time, 
-                  df.quality, 
+                  df.avg_quality, 
                   label=get(METHOD_SYMBOLS, method, method), 
                   color=get(COLORS, method, :black), 
                   linewidth=2)
         end
+        plot!(df.time, 
+                df.avg_quality .- df.std_quality, 
+                fillrange=df.avg_quality .+ df.std_quality, 
+                fillalpha=0.15, 
+                c=get(COLORS, method, :black), 
+                linealpha=0,
+                label=nothing)
     end
     if !isnothing(heuristic_df)
         scatter!(heuristic_df.time, 
-                 heuristic_df.quality, 
+                 heuristic_df.avg_quality, 
+                 yerr = heuristic_df.std_quality,
                  label=get(METHOD_SYMBOLS, "heuristic", "heuristic"), 
                  color=get(COLORS, "heuristic", :black), 
                  markersize=5)

@@ -2,6 +2,8 @@ include("methods/constants.jl")
 include("methods/all_methods.jl")
 include("utils/performance_test.jl")
 
+using CSV
+
 # 2.1.1, 2.1.3
 # instances = ["berlin52", "ch150", "gil262", 
 #                 "pcb1173", "pr76", "pr226", 
@@ -21,7 +23,10 @@ run_performance_analysis(instances, methods, iterations, config)
 
 # 2.1.2, 2.1.4, 2.1.5
 df = CSV.read("results/performance_test_stats.csv", DataFrame)
-df = df[:, [:instance, :method, :running_time, :avg_alg_steps, :avg_eval_sol]]
+df = df[:, [:instance, :method, 
+            :avg_running_time, :std_running_time,  
+            :avg_alg_steps, :std_alg_steps,
+            :avg_eval_sol, :std_eval_sol]]
 latex_table = performance_results_to_latex(df)
 println(latex_table)
 

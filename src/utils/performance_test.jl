@@ -113,8 +113,9 @@ function performance_test(iterations, distance_matrix, instance, method = local_
     df.method .= string(method)
 
     results["df"] = df
-    results["running_time"] = mean(running_times)
-    results["quality_over_time"] = [time_list, compute_average_lists(quality_list)]
+    results["running_time"] = running_times
+    quality_avg, quality_std = compute_average_std_lists(quality_list)
+    results["quality_over_time"] = [time_list, quality_avg, quality_std]
     
     return results
 end
@@ -137,7 +138,10 @@ function run_performance_analysis(instances, methods, iterations, config = Dict(
 
     results_list = []
     column_names = [:instance, :method, :best_case_quality, :worst_case_quality,
-                    :avg_quality, :std_quality, :avg_alg_steps, :avg_eval_sol, :running_time]
+                    :avg_quality, :std_quality, 
+                    :avg_alg_steps, :std_alg_steps, 
+                    :avg_eval_sol, :std_eval_sol, 
+                    :avg_running_time, :std_running_time]
     results_stats_df = DataFrame([Vector{Any}() for _ in column_names], column_names)
     
     for instance in instances
@@ -149,20 +153,22 @@ function run_performance_analysis(instances, methods, iterations, config = Dict(
             tsp = read_tsp_file(fielname)
 
             results = performance_test(iterations, tsp.distance_matrix, instance, method, tsp.opt_tour, config)
-            performance_df, running_time = results["df"], results["running_time"]
+            performance_df, running_times = results["df"], results["running_time"]
 
             if !isempty(results["quality_over_time"][1])
                 time_quality_df = DataFrame(time = results["quality_over_time"][1], 
-                                            quality = results["quality_over_time"][2])
+                                            avg_quality = results["quality_over_time"][2],
+                                            std_quality = results["quality_over_time"][3])
                 CSV.write(time_quality_dir * "$instance" * "_$method.csv", time_quality_df)
             elseif get(config, "quality_over_time", false) && "$method" == "heuristic"
-                time_quality_df = DataFrame(time = [running_time], 
-                                            quality = [mean(performance_df.quality)])
+                time_quality_df = DataFrame(time = [mean(running_times)], 
+                                            avg_quality = [mean(performance_df.quality)],
+                                            std_quality = [std(performance_df.quality)])
                 CSV.write(time_quality_dir * "$instance" * "_$method.csv", time_quality_df)
             end
 
             if isnothing(config["time_limit"])
-                config["time_limit"] = running_time
+                config["time_limit"] = maximum(running_times)
             end
 
             push!(results_list, performance_df)
@@ -174,8 +180,9 @@ function run_performance_analysis(instances, methods, iterations, config = Dict(
             new_row = DataFrame(instance=[tsp.name], method=[method],
                                 best_case_quality=[performance_df.quality[best_case]], worst_case_quality=[performance_df.quality[worst_case]],
                                 avg_quality=[mean(performance_df.quality)], std_quality=[std(performance_df.quality)], 
-                                avg_alg_steps=[mean(performance_df.algorithm_steps)], avg_eval_sol=[mean(performance_df.evaluated_solutions)],
-                                running_time=[running_time])
+                                avg_alg_steps=[mean(performance_df.algorithm_steps)], std_alg_steps=[std(performance_df.algorithm_steps)], 
+                                avg_eval_sol=[mean(performance_df.evaluated_solutions)], std_eval_sol=[std(performance_df.evaluated_solutions)],
+                                avg_running_time=[mean(running_times)], std_running_time=[std(running_times)])
 
             results_stats_df = vcat(results_stats_df, new_row)
 

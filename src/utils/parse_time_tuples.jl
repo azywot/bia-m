@@ -1,19 +1,27 @@
-function compute_average_lists(lists)
+using Statistics
+
+function compute_average_std_lists(lists)
     if isempty(lists) || minimum(length(lst) for lst in lists) == 0
-        return []
+        return [], []
     end
     max_length = maximum(length(lst) for lst in lists)
     padded_lists = [vcat(lst, fill(lst[end], max_length - length(lst))) for lst in lists]
     
     avg_arr = zeros(Float32, max_length)
+    std_arr = zeros(Float32, max_length)
     
     for lst in padded_lists
         avg_arr .+= lst
     end
     avg_arr ./= length(lists)
-    return avg_arr
+    
+    for lst in padded_lists
+        std_arr .+= (lst .- avg_arr).^2
+    end
+    std_arr = sqrt.(std_arr ./ length(lists))
+    
+    return avg_arr, std_arr
 end
-
 
 """
 ## Transform time tuples to the form that can be plotted.

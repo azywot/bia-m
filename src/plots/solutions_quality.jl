@@ -141,4 +141,54 @@ function create_quality_over_time_plot(instance::String, path::String)
     savefig(path * "$instance" * "_quality_over_time_plot.png")
 end
 
-# create_quality_over_time_plot("st70", "results/time_quality/")
+
+"""
+Create a bar plot depicting the quality of a TSP solutions and save it.
+
+- `data::DataFrame`: data
+- `savepath::String`: path to save 
+- `stat::String`: statistic to consider
+
+returns: nothing
+"""
+function create_solution_efficiency_plot(data::DataFrame, savepath::String, without_h = false)
+
+    df = deepcopy(data)
+    df.method = map(string, df.method)
+    if without_h
+        df = filter(row -> row.method != "heuristic", df)
+    end
+    df.instance = map(string, df.instance)
+    df.method_renamed = map(method -> get(METHOD_SYMBOLS, method, method), df.method)
+    df.avg_efficiency = map(Float32, df.avg_efficiency)
+    df.std_efficiency = map(Float32, df.std_efficiency)
+    df.nodes = extract_nodes.(df.instance)
+    
+    method_order = Dict("RS" => 1, "RW" => 2, "H" => 3, "G" => 4, "S" => 5)
+    df = sort(df, :method_renamed, by = x -> get(method_order, x, length(method_order)))
+    df = sort(df, [:nodes])
+    df.instance = CategoricalArray(df.instance, levels = unique(df.instance))
+    df.method_renamed = CategoricalArray(df.method_renamed, levels = unique(df.method_renamed))
+
+    color_list = [get(COLORS, m, :black) for m in df.method]
+
+    plot = groupedbar(
+                df.instance, 
+                df.avg_efficiency, 
+                yerr = df.std_efficiency, 
+                group =  df.method_renamed, 
+                ylabel = "efficiency", 
+                # title = "Efficiency of the methods",
+                bar_width = 0.67, 
+                c = color_list, 
+                markerstrokewidth = 1.5,
+                ylims = (0, maximum(df.avg_efficiency)+maximum(df.std_efficiency)),
+                legend=:topright
+            )
+    
+    if without_h
+        savefig(plot, savepath * "/solution_efficiency_plot_without_heuristic.png")
+    else
+        savefig(plot, savepath * "/solution_efficiency_plot.png")
+    end
+end

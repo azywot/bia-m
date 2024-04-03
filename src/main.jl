@@ -10,7 +10,7 @@ using CSV
 #                 "pr439", "pr1002", "rat575", 
 #                 "st70","tsp225", "u724"]
 config = Dict{String, Any}("quality_over_time" => true)
-instances = ["berlin52", "st70", "pr76", "ch150","tsp225", "pr226", "gil262", "pr439", "rat575", "u724"]
+instances = ["berlin52", "st70", "pr76", "ch150","tsp225", "pr226", "gil262", "pr439"]#, "rat575", "u724"]
 methods = [ 
             local_steepest_search, # sets the time for random_* methods
             local_greedy_search, 
@@ -18,8 +18,33 @@ methods = [
             random_walk, 
             random_search, 
         ]
-iterations = 10
-run_performance_analysis(instances, methods, iterations, config)
+# iterations = 10
+# run_performance_analysis(instances, methods, iterations, config)
+
+# 2.1.3 Algorithms' efficiency - (quality_initial - quality_final)/time
+data_dict = Dict("instance" => [], 
+                 "method" => [],
+                 "avg_efficiency" => [],
+                 "std_efficiency" => [])
+for instance in instances
+    for method in methods
+        df = CSV.read("results/time_quality/$instance"*"_$method.csv", DataFrame)
+
+        first_avg, first_std =  df[1, "avg_quality"], df[1, "std_quality"]
+        last_avg, last_std, total_time =  df[end, "avg_quality"], df[end, "std_quality"], df[end, "time"]
+        avg_efficiency = (first_avg - last_avg)/total_time
+        std_efficiency = (first_std - last_std)/total_time
+
+        push!(data_dict["instance"], instance)
+        push!(data_dict["method"], method)
+        push!(data_dict["avg_efficiency"], avg_efficiency)
+        push!(data_dict["std_efficiency"], std_efficiency)
+    end
+end
+df = DataFrame(data_dict)
+create_solution_efficiency_plot(df, "results/efficiency")
+create_solution_efficiency_plot(df, "results/efficiency", true)
+
 
 # 2.1.2, 2.1.4, 2.1.5
 df = CSV.read("results/performance_test_stats.csv", DataFrame)

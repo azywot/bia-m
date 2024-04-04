@@ -18,7 +18,7 @@ function random_search(initial_solution, distance_matrix, config = Dict())
     best_cost = evaluate_solution(best_solution, distance_matrix)
     evaluated_solutions = 0
 
-    time_limit = get(config, "time_limit", TIME_LIMIT)
+    time_limit = minimum([get(config, "time_limit", TIME_LIMIT), TIME_LIMIT])
     start_time = time()
     quality_over_time = get(config, "quality_over_time", false)
     if quality_over_time

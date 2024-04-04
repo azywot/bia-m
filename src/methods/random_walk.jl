@@ -20,7 +20,7 @@ function random_walk(initial_solution, distance_matrix, config = Dict())
     best_cost = current_cost
     evaluated_solutions = 0
 
-    time_limit = get(config, "time_limit", TIME_LIMIT)
+    time_limit = minimum([get(config, "time_limit", TIME_LIMIT), TIME_LIMIT])
     start_time = time()
 
     quality_over_time = get(config, "quality_over_time", false)

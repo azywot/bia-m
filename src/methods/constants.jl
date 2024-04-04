@@ -1,7 +1,7 @@
 import Base: isless
 using DataFrames
 
-TIME_LIMIT = 5
+TIME_LIMIT = 1000
 DATA_DIR = "data/SEL_tsp"
 
 OPTIMUM_COST = Dict(

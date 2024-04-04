@@ -73,7 +73,7 @@ function tabu_search(solution, distance_matrix, config = Dict())
 
     patience = get(config, "patience", 100) # stopping condition
     quality_over_time = get(config, "quality_over_time", false)
-    time_limit = get(config, "time_limit", TIME_LIMIT)
+    time_limit = minimum([get(config, "time_limit", TIME_LIMIT), TIME_LIMIT])
     start_time = time()
 
     if quality_over_time

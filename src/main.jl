@@ -14,12 +14,13 @@ instances = ["berlin52", "st70", "pr76", "ch150","tsp225", "pr226", "gil262", "p
 methods = [ 
             local_steepest_search, # sets the time for random_* methods
             local_greedy_search, 
+            tabu_search,
             heuristic, 
             random_walk, 
             random_search, 
         ]
-# iterations = 10
-# run_performance_analysis(instances, methods, iterations, config)
+iterations = 10
+run_performance_analysis(instances, methods, iterations, config)
 
 # 2.1.3 Algorithms' efficiency - (quality_initial - quality_final)/time
 data_dict = Dict("instance" => [], 

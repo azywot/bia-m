@@ -8,7 +8,7 @@ include("../plots/solutions_quality.jl")
 include("../plots/solutions_similarity.jl")
 include("eval.jl")
 
-using DataFrames, CSV
+using DataFrames, CSV, Dates
 
 """
 Get the set of edges of a solution.
@@ -132,8 +132,9 @@ returns: nothing
 """
 function run_performance_analysis(instances, methods, iterations, config = Dict())
 
-    results_path = "results/performance_test.csv"
-    results_stats_path = "results/performance_test_stats.csv"
+    date_string = Dates.format(Dates.today(), "dd-mm-yyyy")
+    results_path = "results/performance_test_$date_string.csv"
+    results_stats_path = "results/performance_test_stats_$date_string.csv"
     time_quality_dir = "results/time_quality/"
 
     results_list = []

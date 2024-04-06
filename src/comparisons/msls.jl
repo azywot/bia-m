@@ -17,9 +17,9 @@ Plot costs with correlation as title
 """
 function plot_msls(x_bests, bests, costs, means, stds, save_path)
     x = collect(1:length(costs))
-    fig = scatter(x, costs, color=:gray, label="Cost", markersize=4, xlabel="Number of restarts", ylabel="Cost")
-    plot!(x_bests, bests, linecolor=:green, marker=:diamond, markercolor=:green, markersize=6, label="Best cost")
-    plot!(x, means, color=:blue, linewidth=4, label = "mean")
+    fig = scatter(x, costs, color=:lightgray, label="Cost", markersize=3, xlabel="Number of restarts", ylabel="Cost")
+    plot!(x_bests, bests, linecolor=:magenta, linewidth=4, marker=:star, markercolor=:magenta, markersize=6, label="Best cost")
+    plot!(x, means, color=:blue, linewidth=3, label = "mean")
     plot!(x, means .- stds, fillrange=means .+ stds, fillalpha=0.35, c=1, label="std", linealpha=0)
     file_path = joinpath(save_path * ".png")
     savefig(fig, file_path)
@@ -76,7 +76,7 @@ end
 - `iterations::Int`: number of iterations to run the algorithm
 """
 function assess_number_of_restarts(directory_path, instances, iterations=300)
-    methods = [local_greedy_search, local_steepest_search]
+    methods = [local_steepest_search]
     for method in methods
         for instance in instances
             println(method, instance)
@@ -89,5 +89,5 @@ end
 
 
 directory_path = "data/SEL_tsp"
-chosen_instances = ["berlin52", "ch150", "pr76", "tsp225"]
+chosen_instances = ["tsp225"]
 assess_number_of_restarts(directory_path, chosen_instances)

@@ -7,22 +7,14 @@ include("../utils/random_gen.jl")
 include("../utils/read_data.jl")
 
 
-# plots: params for chosen instances
-# TODO other methods?
-function generate_neighbor(tour)
-    n = length(tour)
-    i, j = rand(1:n), rand(1:n)
-    tour[i], tour[j] = tour[j], tour[i]
-    return tour
-end
-
-
 function simulated_annealing(initial_solution, distance_matrix, config=Dict())
     N = length(initial_solution)
     current_solution = deepcopy(initial_solution)
     distance_matrix = deepcopy(distance_matrix)
     best_cost = evaluate_solution(initial_solution, distance_matrix)
     algorithm_steps = 0
+    evaluated_solutions = 0
+    no_improve = 0
     evaluated_solutions = 0
     ### SA params
     L = N^2
@@ -40,23 +32,19 @@ function simulated_annealing(initial_solution, distance_matrix, config=Dict())
         push!(times_qualities, (round(time() - start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
     end
 
-    no_improve = 0
-    evaluated_solutions = 0
+    node_pairs = generate_all_pairs(N)
 
     while (no_improve < P * L) & ((time() - start_time) < time_limit)
-        # or (temperature > 0.01) (no_improve < P * L) 
-        for _ in 1:L
-            new_tour = generate_neighbor(copy(current_solution))
-            new_cost = evaluate_solution(new_tour, distance_matrix)
-            delta = new_cost - best_cost
+        # (temperature > 0.01) or (no_improve < P * L)
+        node_pairs = shuffle(node_pairs)
+
+        for indices in node_pairs
+            new_solution, delta =
+                generate_intra_route_move(current_solution, distance_matrix, indices, get(config, "mode", "edge"))
             if delta < 0 || rand() < exp(-delta / temperature)
-                current_solution = new_tour
-                best_cost = new_cost
-                no_improve = 0
+                current_solution = deepcopy(new_solution)
+                best_cost += delta
                 algorithm_steps += 1
-                if quality_over_time
-                    push!(times_qualities, (round(time() - start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
-                end
             end
             evaluated_solutions += 1
         end

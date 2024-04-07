@@ -56,7 +56,7 @@ returns: `Solution`: a Tabu search solution
 """
 function tabu_search(solution, distance_matrix, config = Dict())
 
-    N =  size(distance_matrix)[1]
+    N = size(distance_matrix)[1]
     tabu_moves = zeros(N, N)
 
     distance_matrix = deepcopy(distance_matrix)

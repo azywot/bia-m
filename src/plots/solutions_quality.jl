@@ -5,14 +5,16 @@ COLORS = Dict("random_search" => :red,
               "heuristic" => :blue3, 
               "local_greedy_search" => :green, 
               "local_steepest_search" => :green3,
-              "tabu_search" => :magenta)
+              "tabu_search" => :magenta,
+              "simulated_annealing" => :purple)
 
 METHOD_SYMBOLS = Dict("random_search" => "RS", 
                 "random_walk" => "RW", 
                 "heuristic" => "H", 
                 "local_greedy_search" => "G", 
                 "local_steepest_search" => "S",
-                "tabu_search" => "TS")
+                "tabu_search" => "TS",
+                "simulated_annealing" => "SA")
 
 function extract_nodes(instance::String)
     digits = filter(x -> isdigit(x), instance)
@@ -166,7 +168,7 @@ function create_solution_efficiency_plot(data::DataFrame, savepath::String, with
     df.std_efficiency = map(Float32, df.std_efficiency)
     df.nodes = extract_nodes.(df.instance)
     
-    method_order = Dict("RS" => 1, "RW" => 2, "H" => 3, "G" => 4, "S" => 5, "TS" => 6)
+    method_order = Dict("RS" => 1, "RW" => 2, "H" => 3, "G" => 4, "S" => 5, "TS" => 6, "SA" => 7)
     df = sort(df, :method_renamed, by = x -> get(method_order, x, length(method_order)))
     df = sort(df, [:nodes])
     df.instance = CategoricalArray(df.instance, levels = unique(df.instance))

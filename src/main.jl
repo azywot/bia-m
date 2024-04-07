@@ -10,11 +10,12 @@ using CSV
 #                 "pr439", "pr1002", "rat575", 
 #                 "st70","tsp225", "u724"]
 config = Dict{String, Any}("quality_over_time" => true)
-instances = ["berlin52", "st70", "pr76", "ch150","tsp225", "pr226", "gil262", "pr439"]#, "rat575", "u724"]
+instances = ["berlin52", "st70", "pr76"]#, "ch150","tsp225", "pr226", "gil262", "pr439"]#, "rat575", "u724"]
 methods = [ 
             local_steepest_search, # sets the time for random_* methods
             local_greedy_search, 
             tabu_search,
+            simulated_annealing,
             heuristic, 
             random_walk, 
             random_search, 

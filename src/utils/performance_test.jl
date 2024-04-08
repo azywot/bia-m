@@ -148,24 +148,33 @@ function run_performance_analysis(instances, methods, iterations, config = Dict(
     for instance in instances
         config["instance"] = instance
         config["time_limit"] = nothing
-        for method in methods
-            println(instance, ":\t", method)
+        for (idx, method) in enumerate(methods)
+
+            method_config = get(config, "method_config", Dict())
+            if !isempty(method_config) && length(method_config) > idx
+                method_config = method_config[idx]
+            end
+            
+            method_suffix = haskey(method_config, "suffix") && length(method_config["suffix"]) > 0 ? "$method" * "_" * method_config["suffix"] : method
+            
+            println(instance, ":\t", method, "\tconfig", method_config)
             fielname = joinpath(DATA_DIR, instance * ".tsp")
             tsp = read_tsp_file(fielname)
 
-            results = performance_test(iterations, tsp.distance_matrix, instance, method, tsp.opt_tour, config)
+            results = performance_test(iterations, tsp.distance_matrix, instance, method, tsp.opt_tour, merge(config, method_config))
             performance_df, running_times = results["df"], results["running_time"]
+            performance_df.method .= "$method_suffix"
 
             if !isempty(results["quality_over_time"][1])
                 time_quality_df = DataFrame(time = results["quality_over_time"][1], 
                                             avg_quality = results["quality_over_time"][2],
                                             std_quality = results["quality_over_time"][3])
-                CSV.write(time_quality_dir * "$instance" * "_$method.csv", time_quality_df)
-            elseif get(config, "quality_over_time", false) && "$method" == "heuristic"
+                CSV.write(time_quality_dir * "$instance" * "_$method_suffix.csv", time_quality_df)
+            elseif get(config, "quality_over_time", false) && "$method_suffix" == "heuristic"
                 time_quality_df = DataFrame(time = [mean(running_times)], 
                                             avg_quality = [mean(performance_df.quality)],
                                             std_quality = [std(performance_df.quality)])
-                CSV.write(time_quality_dir * "$instance" * "_$method.csv", time_quality_df)
+                CSV.write(time_quality_dir * "$instance" * "_$method_suffix.csv", time_quality_df)
             end
 
             if isnothing(config["time_limit"])
@@ -178,7 +187,7 @@ function run_performance_analysis(instances, methods, iterations, config = Dict(
             best_case = argmin(performance_df.cost)
             worst_case = argmax(performance_df.cost)
 
-            new_row = DataFrame(instance=[tsp.name], method=[method],
+            new_row = DataFrame(instance=[tsp.name], method=["$method_suffix"],
                                 best_case_quality=[performance_df.quality[best_case]], worst_case_quality=[performance_df.quality[worst_case]],
                                 avg_quality=[mean(performance_df.quality)], std_quality=[std(performance_df.quality)], 
                                 avg_alg_steps=[mean(performance_df.algorithm_steps)], std_alg_steps=[std(performance_df.algorithm_steps)], 
@@ -189,7 +198,7 @@ function run_performance_analysis(instances, methods, iterations, config = Dict(
 
             # SAVE PLOTS (SIMILARITY) - NOTE: only for ones with a optimal solution known
             if get(config, "similarity_analysis", false) && !isempty(tsp.opt_tour)
-                create_solution_similarity_plot(performance_df, instance, "$method", "results/solution_similarity_plots")
+                create_solution_similarity_plot(performance_df, instance, "$method_suffix", "results/solution_similarity_plots")
             end
 
             if get(config, "quality_over_time", false)

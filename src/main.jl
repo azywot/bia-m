@@ -9,16 +9,26 @@ using CSV
 #                 "pcb1173", "pr76", "pr226", 
 #                 "pr439", "pr1002", "rat575", 
 #                 "st70","tsp225", "u724"]
-config = Dict{String, Any}("quality_over_time" => true)
+config = Dict{String, Any}("quality_over_time" => true,
+                            "method_config" => (
+                                # Dict(), # G
+                                Dict(), # S
+                                Dict("suffix" => "frac_4", "candidate_frac_check" => 0.4), # TS
+                                Dict("suffix" => "SA_SUFFIX"),   # SA
+                                Dict(), # H
+                                Dict(), # RW
+                                Dict() # RS
+                            )
+                        )
 instances = ["berlin52", "st70", "pr76"]#, "ch150","tsp225", "pr226", "gil262", "pr439"]#, "rat575", "u724"]
 methods = [ 
-            local_steepest_search, # sets the time for random_* methods
+            # local_steepest_search, # sets the time for random_* methods
             local_greedy_search, 
             tabu_search,
             simulated_annealing,
-            heuristic, 
-            random_walk, 
-            random_search, 
+            # heuristic, 
+            # random_walk, 
+            # random_search, 
         ]
 iterations = 10
 run_performance_analysis(instances, methods, iterations, config)

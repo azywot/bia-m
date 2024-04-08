@@ -151,13 +151,13 @@ function run_performance_analysis(instances, methods, iterations, config = Dict(
         for (idx, method) in enumerate(methods)
 
             method_config = get(config, "method_config", Dict())
-            if !isempty(method_config) && length(method_config) > idx
+            if !isempty(method_config) && length(method_config) >= idx
                 method_config = method_config[idx]
             end
             
-            method_suffix = haskey(method_config, "suffix") && length(method_config["suffix"]) > 0 ? "$method" * "_" * method_config["suffix"] : method
-            
             println(instance, ":\t", method, "\tconfig", method_config)
+            method_suffix = haskey(method_config, "suffix") && length(method_config["suffix"]) > 0 ? "$method" * "_" * method_config["suffix"] : method
+
             fielname = joinpath(DATA_DIR, instance * ".tsp")
             tsp = read_tsp_file(fielname)
 

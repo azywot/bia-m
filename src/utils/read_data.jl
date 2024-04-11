@@ -177,6 +177,8 @@ function performance_results_to_latex(df::DataFrame)
     latex_str = replace(latex_str, "random_walk" => "RW")
     latex_str = replace(latex_str, "random_search" => "RS")
     latex_str = replace(latex_str, "heuristic" => "H")
+    latex_str = replace(latex_str, "tabu_search" => "TS")
+    latex_str = replace(latex_str, "simulated_annealing" => "SA")
     latex_str = replace(latex_str, "_" => " ")
     latex_str = replace(latex_str, "-1.0" => "-")
 

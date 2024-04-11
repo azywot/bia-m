@@ -43,10 +43,11 @@ function simulated_annealing(initial_solution, distance_matrix, config=Dict())
             if delta < 0 || rand() < exp(-delta / temperature)
                 current_solution = deepcopy(new_solution)
                 current_cost += delta
-                algorithm_steps += 1
+                
                 if  current_cost < best_cost
                     best_solution = deepcopy(current_solution)
                     best_cost = current_cost
+                    algorithm_steps += 1
                     if quality_over_time
                         push!(times_qualities, (round(time() - start_time; digits=2), calculate_solution_quality(best_cost, optimal_cost)))
                     end
